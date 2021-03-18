@@ -1,4 +1,3 @@
-
 //---
 //	@package VCE
 //	@title Output Events
@@ -19,53 +18,53 @@ function fxDTSBrick::doVCEVarFunction(%brick, %function, %oldValue, %newValue, %
 		return %oldvalue * getField(%newvalue, 0);
 	if(%function == 4)
 		return %oldvalue / getField(%newvalue, 0);
-	if(%function == 5)
-		return %oldvalue % getField(%newvalue, 0);
-	if(%function == 6)
-		return mPow(%oldValue, getField(%newvalue, 0));
-	if(%function == 7)
-		return mPow(%oldValue, 1 / getField(%newvalue, 0));
-	if(%function == 8)
-		return mPercent(%oldvalue, getField(%newvalue, 0));
-	if(%function == 9)
-		return getRandom(%oldValue, getField(%newvalue, 0));
-	if(%function == 10)
-		return mAbs(%oldValue);
-	if(%function == 11)
-		return mFloor(%oldValue);
-	if(%function == 12)
-		return mCeil(%oldValue);
-	if(%function == 13)
-		return mClamp(%oldValue, getField(%newValue, 0), getField(%newValue, 1));
-	if(%function == 14)
-		return mSin(%oldValue);
 	if(%function == 15)
-		return mCos(%oldValue);
-	if(%function == 16)
-		return mTan(%oldValue);
+		return %oldvalue % getField(%newvalue, 0);
+	if(%function == 7)
+		return mPow(%oldValue, getField(%newvalue, 0));
+	if(%function == 8)
+		return mPow(%oldValue, 1 / getField(%newvalue, 0));
+	if(%function == 9)
+		return mPercent(%oldvalue, getField(%newvalue, 0));
+	if(%function == 10)
+		return getRandom(%oldValue, getField(%newvalue, 0));
 	if(%function == 17)
-		return mASin(%oldValue);
+		return mAbs(%oldValue);
+	if(%function == 5)
+		return mFloor(%oldValue);
+	if(%function == 6)
+		return mCeil(%oldValue);
 	if(%function == 18)
-		return mACos(%oldValue);
+		return mClamp(%oldValue, getField(%newValue, 0), getField(%newValue, 1));
 	if(%function == 19)
-		return mATan(%oldValue);
+		return mSin(%oldValue);
 	if(%function == 20)
-		return strLen(%oldValue);
+		return mCos(%oldValue);
 	if(%function == 21)
-		return strPos(%oldValue, getField(%newValue, 0), getField(%newValue, 1));
+		return mTan(%oldValue);
 	if(%function == 22)
-		return strLwr(%oldValue);
+		return mASin(%oldValue);
 	if(%function == 23)
-		return strUpr(%oldValue);
-	if(%function == 24) 
-		return strChr(%oldValue, getField(%newValue, 0));
+		return mACos(%oldValue);
+	if(%function == 24)
+		return mATan(%oldValue);
+	if(%function == 15)
+		return strLen(%oldValue);
 	if(%function == 25)
-		return strReplace(%oldValue, getField(%newValue, 0), getField(%newValue, 1));
+		return strPos(%oldValue, getField(%newValue, 0), getField(%newValue, 1));
+	if(%function == 12)
+		return strLwr(%oldValue);
+	if(%function == 13)
+		return strUpr(%oldValue);
+	if(%function == 14) 
+		return strChr(%oldValue, getField(%newValue, 0));
 	if(%function == 26)
-		return trim(%oldValue);
+		return strReplace(%oldValue, getField(%newValue, 0), getField(%newValue, 1));
 	if(%function == 27)
-		return getSubStr(%oldValue, getField(%newValue, 0), getField(%newValue, 1));
+		return trim(%oldValue);
 	if(%function == 28)
+		return getSubStr(%oldValue, getField(%newValue, 0), getField(%newValue, 1));
+	if(%function == 11)
 		return getWord(%oldValue, getField(%newValue, 0));
 	if(%function == 29)
 		return getWordCount(%oldValue);
@@ -186,7 +185,7 @@ function MinigameSO::VCE_ifVariable(%mini,%var,%logic,%valb,%subdata,%client)
 {
 	%var = $inputTarget_Self.filterVCEString(%var,%client);
 	for(%i = 0; %i < getWordCount(%var); %i++){
-		if((%value = $inputTarget_Self.getGroup().vargroup.getVariable("MinigameSO",getWord(%var ,%i),$inputTarget_Self)) !$= ""){
+		if((%value = $inputTarget_Self.getGroup().vargroup.getVariable("MinigameSO",getWord(%var ,%i),%mini)) !$= ""){
 			%var = setWord(%var, %i, %value);
 		}
 	}
@@ -196,7 +195,7 @@ function Vehicle::VCE_ifVariable(%vehicle,%var,%logic,%valb,%subdata,%client)
 {
 	%var = $inputTarget_Self.filterVCEString(%var,%client);
 	for(%i = 0; %i < getWordCount(%var); %i++){
-		if((%value = $inputTarget_Self.getGroup().vargroup.getVariable("Vehicle",getWord(%var ,%i),$inputTarget_Self)) !$= ""){
+		if((%value = $inputTarget_Self.getGroup().vargroup.getVariable("Vehicle",getWord(%var ,%i),%vehicle)) !$= ""){
 			%var = setWord(%var, %i, %value);
 		}
 	}
@@ -206,7 +205,7 @@ function Player::VCE_ifVariable(%player,%var,%logic,%valb,%subdata,%client)
 {
 	%var = $inputTarget_Self.filterVCEString(%var,%client);
 	for(%i = 0; %i < getWordCount(%var); %i++){
-		if((%value = $inputTarget_Self.getGroup().vargroup.getVariable("Player",getWord(%var ,%i),$inputTarget_Self)) !$= ""){
+		if((%value = $inputTarget_Self.getGroup().vargroup.getVariable("Player",getWord(%var ,%i),%player)) !$= ""){
 			%var = setWord(%var, %i, %value);
 		}
 	}
@@ -216,7 +215,7 @@ function GameConnection::VCE_ifVariable(%client,%var,%logic,%valb,%subdata,%sour
 {
 	%var = $inputTarget_Self.filterVCEString(%var,%client);
 	for(%i = 0; %i < getWordCount(%var); %i++){
-		if((%value = $inputTarget_Self.getGroup().vargroup.getVariable("GameConnection",getWord(%var ,%i),$inputTarget_Self)) !$= ""){
+		if((%value = $inputTarget_Self.getGroup().vargroup.getVariable("GameConnection",getWord(%var ,%i),%client)) !$= ""){
 			%var = setWord(%var, %i, %value);
 		}
 	}
@@ -226,7 +225,7 @@ function fxDtsBrick::VCE_ifVariable(%brick,%var,%logic,%valb,%subdata,%client)
 {
 	%var = %brick.filterVCEString(%var,%client);
 	for(%i = 0; %i < getWordCount(%var); %i++){
-		if((%value = $inputTarget_Self.getGroup().vargroup.getVariable("Brick",getWord(%var ,%i),$inputTarget_Self)) !$= ""){
+		if((%value = $inputTarget_Self.getGroup().vargroup.getVariable("Brick",getWord(%var ,%i),%brick)) !$= ""){
 			%var = setWord(%var, %i, %value);
 		}
 	}
@@ -236,7 +235,7 @@ function AIPlayer::VCE_ifVariable(%bot,%var,%logic,%valb,%subdata,%client)
 {
 	%var = $inputTarget_Self.filterVCEString(%var,%client);
 	for(%i = 0; %i < getWordCount(%var); %i++){
-		if((%value = $inputTarget_Self.getGroup().vargroup.getVariable("AIPlayer",getWord(%var ,%i),$inputTarget_Self)) !$= ""){
+		if((%value = $inputTarget_Self.getGroup().vargroup.getVariable("AIPlayer",getWord(%var ,%i),%bot)) !$= ""){
 			%var = setWord(%var, %i, %value);
 		}
 	}
@@ -261,7 +260,7 @@ function fxDtsBrick::VCE_ifValue(%brick,%vala,%logic,%valb,%subdata,%client)
 		if(%test)
 			%brick.ProcessVCERange(%subStart, %subEnd, "onVariableTrue", %client);
 		else
-		%brick.ProcessVCERange(%subStart, %subEnd, "onVariableFalse", %client);
+		    %brick.ProcessVCERange(%subStart, %subEnd, "onVariableFalse", %client);
 	}
 }
 function fxDtsBrick::VCE_retroCheck(%brick,%vala,%logic,%valb,%subdata,%client)
