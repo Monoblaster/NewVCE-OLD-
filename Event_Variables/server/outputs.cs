@@ -1,3 +1,4 @@
+
 //---
 //	@package VCE
 //	@title Output Events
@@ -258,9 +259,9 @@ function fxDtsBrick::VCE_ifValue(%brick,%vala,%logic,%valb,%subdata,%client)
 			%subEnd = %brick.numEvents - 1;
 		}
 		if(%test)
-			%brick.onvariableTrue(%client,%subStart, %subEnd);
+			%brick.ProcessVCERange(%subStart, %subEnd, "onVariableTrue", %client);
 		else
-			%brick.onvariableFalse(%client,%subStart, %subEnd);
+		%brick.ProcessVCERange(%subStart, %subEnd, "onVariableFalse", %client);
 	}
 }
 function fxDtsBrick::VCE_retroCheck(%brick,%vala,%logic,%valb,%subdata,%client)
@@ -355,12 +356,7 @@ function fxDtsBrick::VCE_callFunction(%brick,%name,%args,%delay,%client)
 			%subStart = 0;
 			%subEnd = %brick.numEvents - 1;
 		}
-		%schedule = %brick.schedule(%delay, onVariableFunction, %client, %subStart, %subEnd);
-		if(%brick.functionScheduleCount[%name] $= "")
-			%brick.functionScheduleCount[%name] = 0;
-		%brick.functionSchedule[%brick.functionScheduleCount[%name],%name] = %schedule;
-		%brick.functionScheduleCount[%name]++;
-		%brick.addScheduledEvent(%brick, %schedule);
+		%brick.ProcessVCERange(%subStart, %subEnd, "onVariableFunction", %client);
 	}
 	%client.eventProcessingObj = %preBrick;
 }
@@ -469,4 +465,102 @@ function fxDtsBrick::VCE_loadVariable(%brick,%type,%vars,%client)
 		for(%i=0;%i<%count;%i++)
 			%vargroup.loadVariable(%category,trim(getField(%vars,%i),%target));
 	}
+}
+//Stolen from firerelaynum as this is the best and strongest solution
+function SimObject::ProcessVCERange(%obj, %start, %end, %inputEvent, %client)
+{
+	// Only check for those events we are interested in
+	if (%start $= "" || %end $= "")
+		return "";
+	for (%i = %start; %i <= %end; %i++)
+	{
+		
+		// Already processed
+		if (%tempEvent[%i])
+			continue;
+
+		// Enabled event
+		if (!%obj.eventEnabled[%i])
+			continue;
+		
+		// Not onRelay
+		if (%obj.eventInput[%i] !$= %inputEvent)
+			continue;
+		
+		// Target brick(s)
+		if (%obj.eventTargetIdx[%i] == -1)
+		{
+			%type = "fxDTSBrick";
+			%group = getBrickGroupFromObject(%obj);
+			%name = %obj.eventNT[%i];
+			for (%objs = 0; %objs < %group.NTObjectCount[%name]; %objs++)
+				%objs[%objs] = %group.NTObject[%name, %objs];
+		}
+		// Self
+		else
+		{
+			%type = inputEvent_GetTargetClass(%obj.getClassName(), %obj.eventInputIdx[%i], %obj.eventTargetIdx[%i]);
+			%objs = 1;
+			// Get object from type (Event_onRelay)
+			switch$ (%type)
+			{
+			case "Bot":
+				%objs0 = %obj.hBot;
+			case "Player":
+				%objs0 = %client.player;
+			case "GameConnection":
+				%objs0 = %client;
+			case "Minigame":
+				%objs0 = getMinigameFromObject(%client);
+			default:
+				%objs0 = %obj;
+			}
+		}
+
+		// Parameters
+		%numParams = outputEvent_GetNumParametersFromIdx(%type, %obj.eventOutputIdx[%i]);
+		
+		// Get parameters
+		%param = "";
+		for (%n = 1; %n <= %numParams; %n++)
+			%p[%n] = %obj.eventOutputParameter[%i, %n];
+		
+		// Append client
+		if (%obj.eventOutputAppendClient[%i] && isObject(%client))
+		{
+			%p[%n] = %client;
+			%numParams++;
+		}
+
+		%eventDelay = %obj.eventDelay[%i];
+		%eventOutput = %obj.eventOutput[%i];
+		
+		// Go through list/brick
+		for (%n = 0; %n < %objs; %n++)
+		{
+			%next = %objs[%n];
+
+			if (!isObject(%next))
+				continue;
+			
+			// Call for event function
+			switch (%numParams)
+			{
+			case 0: %event = %next.schedule(%eventDelay, %eventOutput);
+			case 1: %event = %next.schedule(%eventDelay, %eventOutput, %p1);
+			case 2: %event = %next.schedule(%eventDelay, %eventOutput, %p1, %p2);
+			case 3: %event = %next.schedule(%eventDelay, %eventOutput, %p1, %p2, %p3);
+			case 4: %event = %next.schedule(%eventDelay, %eventOutput, %p1, %p2, %p3, %p4);
+			case 5: %event = %next.schedule(%eventDelay, %eventOutput, %p1, %p2, %p3, %p4, %p5);
+			}
+			
+			// To be able to cancel an event
+			if (%delay > 0)
+				%obj.addScheduledEvent(%event);
+		}
+
+		// Mark as processed
+		%tempEvent[%i] = 1;
+	}
+	return "";
 }
