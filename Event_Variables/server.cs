@@ -41,8 +41,16 @@ function VCE_initServer()
 	activatePackage(VCE_Main);
 	//extends the targets of all listed items
 	extendTargetList();
+	//sets up pref
+	if ($Pref::Server::VCE::CompatibilityMode $= "") {
+   		$Pref::Server::VCE::CompatibilityMode = true;
+ 	}
+	//sets the modvar list up depending on what compatibility the person wants
+	if($Pref::Server::VCE::CompatibilityMode)
+		%functionParameter = "\tlist Set 0 Add 1 Subtract 2 Multiply 3 Divide 4 Floor 11 Ceil 12 Power 6 Radical 7 Percent 8 Random 9 Words 28 Lowercase 22 Uppercase 23 Character 24 Length 20 Modulos 5 Absolute 10 Clamp 13 Sin 14 Cos 15 Tan 16 ASin 17 ACos 18 ATan 19 StringPosition 21 Replace 25 Trim 26 SubString 27 CountWord 29 SubWord 30 RemoveWord 31 RemoveWords 32 SetWord 33 VectorDist 34 VectorAdd 35 VectorSub 36 VectorScale 37 VectorLen 38 VectorNormalize 39 VectorDot 40 VectorCross 41 VectorCenter 42 And 43 Or 44 BitwiseAnd 45 BitwiseOr 46 BitwiseShiftRight 47 BitwiseShiftLeft 48 BitwiseXOR 49 BitwiseComplement 50 BooleanInverse 51";
+	else
+		%functionParameter = "\tlist Set 0 Add 1 Subtract 2 Multiply 3 Divide 4 Modulos 5 Power 6 Radical 7 Percent 8 Random 9 Absolute 10 Floor 11 Ceil 12 Clamp 13 Sin 14 Cos 15 Tan 16 ASin 17 ACos 18 ATan 19 Length 20 StringPosition 21 Lowercase 22 Uppercase 23 Character 24 Replace 25 Trim 26 SubString 27 Words 28 CountWord 29 SubWord 30 RemoveWord 31 RemoveWords 32 SetWord 33 VectorDist 34 VectorAdd 35 VectorSub 36 VectorScale 37 VectorLen 38 VectorNormalize 39 VectorDot 40 VectorCross 41 VectorCenter 42 And 43 Or 44 BitwiseAnd 45 BitwiseOr 46 BitwiseShiftRight 47 BitwiseShiftLeft 48 BitwiseXOR 49 BitwiseComplement 50 BooleanInverse 51";
 	//Register all events and special vars
-	%functionParameter = "\tlist Set 0 Add 1 Subtract 2 Multiply 3 Divide 4 Modulos 5 Power 6 Radical 7 Percent 8 Random 9 Absolute 10 Floor 11 Ceil 12 Clamp 13 Sin 14 Cos 15 Tan 16 ASin 17 ACos 18 ATan 19 Length 20 StringPosition 21 Lowercase 22 Uppercase 23 Character 24 Replace 25 Trim 26 SubString 27 Words 28 CountWord 29 SubWord 30 RemoveWord 31 RemoveWords 32 SetWord 33 VectorDist 34 VectorAdd 35 VectorSub 36 VectorScale 37 VectorLen 38 VectorNormalize 39 VectorDot 40 VectorCross 41 VectorCenter 42 And 43 Or 44 BitwiseAnd 45 BitwiseOr 46 BitwiseShiftRight 47 BitwiseShiftLeft 48 BitwiseXOR 49 BitwiseComplement 50 BooleanInverse 51";
 	registerOutputEvent(fxDtsBrick,"VCE_modVariable","list Brick 0 Player 1 Client 2 Minigame 3 Vehicle 4 Bot 5 Local 6\tstring 180 100" @ %functionParameter @ "\tstring 180 255",1);
 	registerOutputEvent(fxDtsBrick,"VCE_ifValue","string 100 100\tlist == 0 != 1 > 2 < 3 >= 4 <= 5 ~= 6\tstring 100 100\tstring 8 30",1);
 	registerOutputEvent(fxDtsBrick,"VCE_retroCheck","list ifPlayerName 0 ifPlayerID 1 ifAdmin 2 ifPlayerEnergy 3 ifPlayerDamage 4 ifPlayerScore 5 ifLastPlayerMsg 6 ifBrickName 7 ifRandomDice 8\tlist == 0 != 1 > 2 < 3 >= 4 <= 5 ~= 6\tstring 100 100\tstring 8 30",1);

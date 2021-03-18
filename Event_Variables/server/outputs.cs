@@ -185,7 +185,7 @@ function MinigameSO::VCE_ifVariable(%mini,%var,%logic,%valb,%subdata,%client)
 {
 	%var = $inputTarget_Self.filterVCEString(%var,%client);
 	for(%i = 0; %i < getWordCount(%var); %i++){
-		if((%value = %brick.getGroup().vargroup.getVariable("MinigameSO",getWord(%var ,%i),%brick)) !$= ""){
+		if((%value = $inputTarget_Self.getGroup().vargroup.getVariable("MinigameSO",getWord(%var ,%i),$inputTarget_Self)) !$= ""){
 			%var = setWord(%var, %i, %value);
 		}
 	}
@@ -195,7 +195,7 @@ function Vehicle::VCE_ifVariable(%vehicle,%var,%logic,%valb,%subdata,%client)
 {
 	%var = $inputTarget_Self.filterVCEString(%var,%client);
 	for(%i = 0; %i < getWordCount(%var); %i++){
-		if((%value = %brick.getGroup().vargroup.getVariable("Vehicle",getWord(%var ,%i),%brick)) !$= ""){
+		if((%value = $inputTarget_Self.getGroup().vargroup.getVariable("Vehicle",getWord(%var ,%i),$inputTarget_Self)) !$= ""){
 			%var = setWord(%var, %i, %value);
 		}
 	}
@@ -205,7 +205,7 @@ function Player::VCE_ifVariable(%player,%var,%logic,%valb,%subdata,%client)
 {
 	%var = $inputTarget_Self.filterVCEString(%var,%client);
 	for(%i = 0; %i < getWordCount(%var); %i++){
-		if((%value = %brick.getGroup().vargroup.getVariable("Player",getWord(%var ,%i),%brick)) !$= ""){
+		if((%value = $inputTarget_Self.getGroup().vargroup.getVariable("Player",getWord(%var ,%i),$inputTarget_Self)) !$= ""){
 			%var = setWord(%var, %i, %value);
 		}
 	}
@@ -215,7 +215,7 @@ function GameConnection::VCE_ifVariable(%client,%var,%logic,%valb,%subdata,%sour
 {
 	%var = $inputTarget_Self.filterVCEString(%var,%client);
 	for(%i = 0; %i < getWordCount(%var); %i++){
-		if((%value = %brick.getGroup().vargroup.getVariable("GameConnection",getWord(%var ,%i),%brick)) !$= ""){
+		if((%value = $inputTarget_Self.getGroup().vargroup.getVariable("GameConnection",getWord(%var ,%i),$inputTarget_Self)) !$= ""){
 			%var = setWord(%var, %i, %value);
 		}
 	}
@@ -225,7 +225,7 @@ function fxDtsBrick::VCE_ifVariable(%brick,%var,%logic,%valb,%subdata,%client)
 {
 	%var = %brick.filterVCEString(%var,%client);
 	for(%i = 0; %i < getWordCount(%var); %i++){
-		if((%value = %brick.getGroup().vargroup.getVariable("Brick",getWord(%var ,%i),%brick)) !$= ""){
+		if((%value = $inputTarget_Self.getGroup().vargroup.getVariable("Brick",getWord(%var ,%i),$inputTarget_Self)) !$= ""){
 			%var = setWord(%var, %i, %value);
 		}
 	}
@@ -235,7 +235,7 @@ function AIPlayer::VCE_ifVariable(%bot,%var,%logic,%valb,%subdata,%client)
 {
 	%var = $inputTarget_Self.filterVCEString(%var,%client);
 	for(%i = 0; %i < getWordCount(%var); %i++){
-		if((%value = %brick.getGroup().vargroup.getVariable("AIPlayer",getWord(%var ,%i),%brick)) !$= ""){
+		if((%value = $inputTarget_Self.getGroup().vargroup.getVariable("AIPlayer",getWord(%var ,%i),$inputTarget_Self)) !$= ""){
 			%var = setWord(%var, %i, %value);
 		}
 	}
