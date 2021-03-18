@@ -236,7 +236,7 @@ function AIPlayer::VCE_ifVariable(%bot,%var,%logic,%valb,%subdata,%client)
 	%var = $inputTarget_Self.filterVCEString(%var,%client);
 	for(%i = 0; %i < getWordCount(%var); %i++){
 		if((%value = $inputTarget_Self.getGroup().vargroup.getVariable("AIPlayer",getWord(%var ,%i),%bot)) !$= ""){
-			%var = setWord(%var, %i, %value)
+			%var = setWord(%var, %i, %value);
 		}
 	}
 	$inputTarget_Self.VCE_ifValue(%var, %logic, %valb, %subdata, %client);
