@@ -260,7 +260,7 @@ function fxDtsBrick::VCE_ifValue(%brick,%vala,%logic,%valb,%subdata,%client)
 		if(%test)
 			%brick.ProcessVCERange(%subStart, %subEnd, "onVariableTrue", %client);
 		else
-		%brick.ProcessVCERange(%subStart, %subEnd, "onVariableFalse", %client);
+		    %brick.ProcessVCERange(%subStart, %subEnd, "onVariableFalse", %client);
 	}
 }
 function fxDtsBrick::VCE_retroCheck(%brick,%vala,%logic,%valb,%subdata,%client)
