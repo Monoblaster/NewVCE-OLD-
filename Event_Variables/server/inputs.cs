@@ -77,20 +77,6 @@ function fxDtsBrick::onVariableTrue(%brick,%client,%start,%end)
 	$inputTarget_Client = %client;
 	$inputTarget_Vehicle = %brick.vehicle;
 	$inputTarget_Minigame = getMinigameFromObject(%client);
-	%deActivatedCount = 0;
-	for(%i = 0; %i < %brick.numEvents; %i++){
-		if(%start > %i || %i > %end){
-			if(%brick.eventEnabled[%i] && %brick.eventInput[%i] $= "onVariableTrue" ){
-				%brick.eventEnabled[%i] = 0;
-				%deActivated[%deActivatedCount] = %i;
-				%deActivatedCount++;
-			}
-		}
-	}
-	%brick.processInputEvent("onVariableTrue",%client);
-	for(%i = 0; %i < %deActivatedCount; %i++){
-		%brick.eventEnabled[%deActivated[%i]] = 1;
-	}
 }
 function fxDtsBrick::onVariableFalse(%brick,%client, %start, %end)
 {
@@ -100,20 +86,6 @@ function fxDtsBrick::onVariableFalse(%brick,%client, %start, %end)
 	$inputTarget_Client = %client;
 	$inputTarget_Vehicle = %brick.vehicle;
 	$inputTarget_Minigame = getMinigameFromObject(%client);
-	%deActivatedCount = 0;
-	for(%i = 0; %i < %brick.numEvents; %i++){
-		if(%start > %i || %i > %end){
-			if(%brick.eventEnabled[%i] && %brick.eventInput[%i] $= "onVariableFalse" ){
-				%brick.eventEnabled[%i] = 0;
-				%deActivated[%deActivatedCount] = %i;
-				%deActivatedCount++;
-			}
-		}
-	}
-	%brick.processInputEvent("onVariableFalse",%client);
-	for(%i = 0; %i < %deActivatedCount; %i++){
-		%brick.eventEnabled[%deActivated[%i]] = 1;
-	}
 }
 function fxDtsBrick::onVariableFunction(%brick,%client, %start, %end)
 {
@@ -123,18 +95,4 @@ function fxDtsBrick::onVariableFunction(%brick,%client, %start, %end)
 	$inputTarget_Client = %client;
 	$inputTarget_Vehicle = %brick.vehicle;
 	$inputTarget_Minigame = getMinigameFromObject(%client);
-	%deActivatedCount = 0;
-	for(%i = 0; %i < %brick.numEvents; %i++){
-		if(%start > %i || %i > %end){
-			if(%brick.eventEnabled[%i] && %brick.eventInput[%i] $= "onVariableFunction" ){
-				%brick.eventEnabled[%i] = 0;
-				%deActivated[%deActivatedCount] = %i;
-				%deActivatedCount++;
-			}
-		}
-	}
-	%brick.processInputEvent("onVariableFunction",%client);
-	for(%i = 0; %i < %deActivatedCount; %i++){
-		%brick.eventEnabled[%deActivated[%i]] = 1;
-	}
 }
