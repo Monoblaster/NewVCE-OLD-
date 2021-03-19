@@ -219,7 +219,7 @@ function fxDTSBrick::filterVCEString(%brick,%string,%client){
 	return %prev @ %product @ %next;
 }
 //for compatibility
-function filterVariableString(%brick, %string, %client, %player, %vehicle){
+function filterVariableString(%string,%brick,%client,%player,%vehicle){
 	return %brick.filterVCEString(%string, %client);
 }
 function getVariableReplacerObjectName(%objectClass){
