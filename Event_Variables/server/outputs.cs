@@ -129,7 +129,6 @@ function fxDTSBrick::doVCEVarFunction(%brick, %function, %oldValue, %newValue, %
 }
 function fxDtsBrick::VCE_modVariable(%brick,%type,%name,%logic,%value,%client)
 {
-	%client.eventProcessingObj = %brick;
 	if(!isObject(%client))
 		return;
 	%varType = $VCE::Sever::VarType[%type];
@@ -244,7 +243,6 @@ function AIPlayer::VCE_ifVariable(%bot,%var,%logic,%valb,%subdata,%client)
 }
 function fxDtsBrick::VCE_ifValue(%brick,%vala,%logic,%valb,%subdata,%client)
 {
-	%client.VCEProccessingObject = %brick;
 	if(!isObject(%client))
 		return;
 	if(isObject(%brick.getGroup().vargroup))
@@ -299,27 +297,27 @@ function fxDtsBrick::VCE_retroCheck(%brick,%vala,%logic,%valb,%subdata,%client)
 }
 function fxDtsBrick::VCE_stateFunction(%brick,%name,%subdata,%client)
 {
-	%client.VCEProccessingObject = %brick;
 	if(isObject(%brick.getGroup().vargroup))
 	{
 		if(getWordCount(%subdata) != 2)
 			return;
 		%name = %brick.filterVCEString(%name,%client);
-		%subStart = mClamp(getWord(%subdata,0),0,%brick.numEvents);
-		%subEnd = mClamp(getWord(%subdata,1),0,%brick.numEvents);
-		if(%subStart == 0 && %subEnd == 0){
+
+		%subStart = getWord(%subdata,0);
+		%subEnd = getWord(%subdata,1);
+
+		if(%subStart $= "" || %subEnd $= ""){
 			%subStart = 0;
 			%subEnd = %brick.numEvents - 1;
 		}
+
 		%brick.vceFunction[%name] = %substart SPC %subend;
 	}
 }
-function fxDtsBrick::VCE_callFunction(%brick,%name,%args,%delay,%client)
+function fxDtsBrick::VCE_callFunction(%brick,%name,%args,%delay,%client,%preBrick)
 {
-	%preBrick = %client.VCEProccessingObject;
 	if(!isObject(%client))
 		return;
-	%client.VCEProccessingObject = %brick;
 	if(isObject(%brick.getGroup().vargroup))
 	{
 		if(%brick == %preBrick){
@@ -341,27 +339,20 @@ function fxDtsBrick::VCE_callFunction(%brick,%name,%args,%delay,%client)
 			%arg[%i] = getField(%args,%i);		
 			%brick.getGroup().vargroup.setVariable("Brick","arg" @ %i,%arg[%i],%brick);
 		}
-		if(getWordCount(%brick.vceFunction[%name]) < 2 && !%subStart)
-		{	
-			%brick.onVariableFunction(%client,0,%brick.numEvents);
-			%client.VCEProccessingObject = %preBrick;
-			return;
-		}
-		if(!%subStart){
-			%subStart = getWord(%brick.vceFunction[%name], 0);
-			%subEnd = getWord(%brick.vceFunction[%name], 1);
-		}
+
+		%subStart = getWord(%brick.vceFunction[%name], 0);
+		%subEnd = getWord(%brick.vceFunction[%name], 1);
+
 		%brick.getGroup().vargroup.setVariable("Brick","argcount",getFieldCount(%args),%brick);
-		if(%subStart == 0 && %subEnd == 0){
-			%subStart = 0;
-			%subEnd = %brick.numEvents - 1;
-		}
+
+		%subStart = mClamp(%subStart,0,%brick.numEvents);
+		%subEnd = mClamp(%subEnd,0,%brick.numEvents);
+
+
 		%brick.VCE_ProcessVCERange(%subStart, %subEnd, "onVariableFunction", %client);
 	}
-	%client.VCEProccessingObject = %preBrick;
 }
 function fxDTSBrick::VCE_cancelFunction(%brick,%name,%client){
-	%client.VCEProccessingObject = %brick;
 	%name = %brick.filterVariableString(%name,%client);
 	%count = %brick.functionScheduleCount[%name];
 	for(%i = 0; %i < %count; %i++)
@@ -422,17 +413,15 @@ function fxDtsBrick::VCE_relayCallFunction(%brick,%direction,%name,%args,%delay,
 		}
 		else 
 		{
-			%searchObj.VCE_callFunction(%name,%args,%delay,%client);
+			%searchObj.VCE_callFunction(%name,%args,%delay,%client,%brick);
 		}
 	}
-	%client.VCEProccessingObject = %brick;
 }
 function fxDTSBrick::VCE_startFunction(%brick,%name,%range,%client){
 	//empty function as it's just a pointer
 }
 function fxDtsBrick::VCE_saveVariable(%brick,%type,%vars,%client)
 {
-	%client.VCEProccessingObject = %brick;
 	if(!isObject(%client))
 		return;
 	if(isObject(%brick.getGroup().vargroup))
@@ -450,7 +439,6 @@ function fxDtsBrick::VCE_saveVariable(%brick,%type,%vars,%client)
 }
 function fxDtsBrick::VCE_loadVariable(%brick,%type,%vars,%client)
 {
-	%client.VCEProccessingObject = %brick;
 	if(!isObject(%client))
 		return;
 	if(isObject(%brick.getGroup().vargroup))

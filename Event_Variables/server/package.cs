@@ -120,12 +120,15 @@ package VCE_Main
 				if(getWordCount(%par2) != 2)
 					return;
 				%name = %brick.filterVCEString(%par1,%client);
-				%subStart = mClamp(getWord(%par2,0),0,%brick.numEvents);
-				%subEnd = mClamp(getWord(%par2,1),0,%brick.numEvents);
-				if(%subStart == 0 && %subEnd == 0){
+
+				%subStart = getWord(%par2,0);
+				%subEnd = getWord(%par2,1);
+
+				if(%subStart $= "" || %subEnd $= ""){
 					%subStart = 0;
 					%subEnd = %brick.numEvents - 1;
 				}
+				
 				%brick.vceFunction[%name] = %substart SPC %subend;
 			}
 		}
@@ -388,31 +391,31 @@ package VCE_Main
 									{
 										if (%numParameters == 0.0)
 										{
-											%scheduleID = %target.schedule(%delay, %outputEvent, %client);
+											%scheduleID = %target.schedule(%delay, %outputEvent, %client, %obj);
 										}
 										else
 										{
 											if (%numParameters == 1.0)
 											{
-												%scheduleID = %target.schedule(%delay, %outputEvent, %par1, %client);
+												%scheduleID = %target.schedule(%delay, %outputEvent, %par1, %client, %obj);
 											}
 											else
 											{
 												if (%numParameters == 2.0)
 												{
-													%scheduleID = %target.schedule(%delay, %outputEvent, %par1, %par2, %client);
+													%scheduleID = %target.schedule(%delay, %outputEvent, %par1, %par2, %client, %obj);
 												}
 												else
 												{
 													if (%numParameters == 3.0)
 													{
-														%scheduleID = %target.schedule(%delay, %outputEvent, %par1, %par2, %par3, %client);
+														%scheduleID = %target.schedule(%delay, %outputEvent, %par1, %par2, %par3, %client, %obj);
 													}
 													else
 													{
 														if (%numParameters == 4.0)
 														{
-															%scheduleID = %target.schedule(%delay, %outputEvent, %par1, %par2, %par3, %par4, %client);
+															%scheduleID = %target.schedule(%delay, %outputEvent, %par1, %par2, %par3, %par4, %client, %obj);
 														}
 														else
 														{
