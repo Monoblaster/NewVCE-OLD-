@@ -158,74 +158,77 @@ function fxDtsBrick::VCE_modVariable(%brick,%type,%name,%logic,%value,%client)
 	}
 	%brick.onVariableUpdate(%client);
 }
-function GameConnection::VCE_modVariable(%client,%name,%logic,%value,%client)
+function GameConnection::VCE_modVariable(%client,%name,%logic,%value,%client,%brick)
 {
-	$inputTarget_Self.VCE_modVariable(2, %name, %logic, %value, %client);
+	%brick.VCE_modVariable(2, %name, %logic, %value, %client);
 }
-function Player::VCE_modVariable(%player,%name,%logic,%value,%client)
+function Player::VCE_modVariable(%player,%name,%logic,%value,%client,%brick)
 {
-	$inputTarget_Self.VCE_modVariable(1, %name, %logic, %value, %client);
+	%brick.VCE_modVariable(1, %name, %logic, %value, %client);
 }
-function Vehicle::VCE_modVariable(%vehicle,%name,%logic,%value,%client)
+function Vehicle::VCE_modVariable(%vehicle,%name,%logic,%value,%client,%brick)
 {
-	$inputTarget_Self.VCE_modVariable(4, %name, %logic, %value, %client);
+	%brick.VCE_modVariable(4, %name, %logic, %value, %client);
 }
-function AIPlayer::VCE_modVariable(%bot,%name,%logic,%value,%client)
+function AIPlayer::VCE_modVariable(%bot,%name,%logic,%value,%client,%brick)
 {
-	if($inputTarget_Self.getDataBlock().getName() $= "brickVehicleSpawnData")
-		$inputTarget_Self.VCE_modVariable(4, %name, %logic, %value, %client);
+	if(%brick.getDataBlock().getName() $= "brickVehicleSpawnData")
+		%brick.VCE_modVariable(4, %name, %logic, %value, %client);
 	else
-		$inputTarget_Self.VCE_modVariable(5, %name, %logic, %value, %client);
+		%brick.VCE_modVariable(5, %name, %logic, %value, %client);
 }
-function MinigameSO::VCE_modVariable(%mini,%name,%logic,%value,%client)
+function MinigameSO::VCE_modVariable(%mini,%name,%logic,%value,%client,%brick)
 {
-	$inputTarget_Self.VCE_modVariable(3, %name, %logic, %value, %client);
+	%brick.VCE_modVariable(3, %name, %logic, %value, %client);
 }
-function MinigameSO::VCE_ifVariable(%mini,%var,%logic,%valb,%subdata,%client)
+function MinigameSO::VCE_ifVariable(%mini,%var,%logic,%valb,%subdata,%client,%brick)
 {
-	%var = $inputTarget_Self.filterVCEString(%var,%client);
+	%var = %brick.filterVCEString(%var,%client);
 	for(%i = 0; %i < getWordCount(%var); %i++){
-		if((%value = $inputTarget_Self.getGroup().vargroup.getVariable("MinigameSO",getWord(%var ,%i),%mini)) !$= ""){
+		if((%value = %brick.getGroup().vargroup.getVariable("MinigameSO",getWord(%var ,%i),%mini)) !$= ""){
 			%var = setWord(%var, %i, %value);
 		}
 	}
-	$inputTarget_Self.VCE_ifValue(%var, %logic, %valb, %subdata, %client);
+	%brick.VCE_ifValue(%var, %logic, %valb, %subdata, %client);
 }
-function Vehicle::VCE_ifVariable(%vehicle,%var,%logic,%valb,%subdata,%client)
+function Vehicle::VCE_ifVariable(%vehicle,%var,%logic,%valb,%subdata,%client,%brick)
 {
-	%var = $inputTarget_Self.filterVCEString(%var,%client);
+	%var = %brick.filterVCEString(%var,%client);
 	for(%i = 0; %i < getWordCount(%var); %i++){
-		if((%value = $inputTarget_Self.getGroup().vargroup.getVariable("Vehicle",getWord(%var ,%i),%vehicle)) !$= ""){
+		if((%value = %brick.getGroup().vargroup.getVariable("Vehicle",getWord(%var ,%i),%vehicle)) !$= ""){
 			%var = setWord(%var, %i, %value);
 		}
 	}
-	$inputTarget_Self.VCE_ifValue(%var, %logic, %valb, %subdata, %client);
+	%brick.VCE_ifValue(%var, %logic, %valb, %subdata, %client);
 }
-function Player::VCE_ifVariable(%player,%var,%logic,%valb,%subdata,%client)
+function Player::VCE_ifVariable(%player,%var,%logic,%valb,%subdata,%client,%brick)
 {
-	%var = $inputTarget_Self.filterVCEString(%var,%client);
+	talk();
+	%var = %brick.filterVCEString(%var,%client);
 	for(%i = 0; %i < getWordCount(%var); %i++){
-		if((%value = $inputTarget_Self.getGroup().vargroup.getVariable("Player",getWord(%var ,%i),%player)) !$= ""){
+		if((%value = %brick.getGroup().vargroup.getVariable("Player",getWord(%var ,%i),%player)) !$= ""){
+			
+			%var = setWord(%var, %i, %value);
+		}
+		talk(%value);
+	}
+	%brick.VCE_ifValue(%var, %logic, %valb, %subdata, %client);
+}
+function GameConnection::VCE_ifVariable(%client,%var,%logic,%valb,%subdata,%sourceClient,%brick)
+{
+	%var = %brick.filterVCEString(%var,%client);
+	for(%i = 0; %i < getWordCount(%var); %i++){
+		if((%value = %brick.getGroup().vargroup.getVariable("GameConnection",getWord(%var ,%i),%client)) !$= ""){
 			%var = setWord(%var, %i, %value);
 		}
 	}
-	$inputTarget_Self.VCE_ifValue(%var, %logic, %valb, %subdata, %client);
-}
-function GameConnection::VCE_ifVariable(%client,%var,%logic,%valb,%subdata,%sourceClient)
-{
-	%var = $inputTarget_Self.filterVCEString(%var,%client);
-	for(%i = 0; %i < getWordCount(%var); %i++){
-		if((%value = $inputTarget_Self.getGroup().vargroup.getVariable("GameConnection",getWord(%var ,%i),%client)) !$= ""){
-			%var = setWord(%var, %i, %value);
-		}
-	}
-	$inputTarget_Self.VCE_ifValue(%var, %logic, %valb, %subdata, %client);
+	%brick.VCE_ifValue(%var, %logic, %valb, %subdata, %client);
 }
 function fxDtsBrick::VCE_ifVariable(%brick,%var,%logic,%valb,%subdata,%client)
 {
 	%var = %brick.filterVCEString(%var,%client);
 	for(%i = 0; %i < getWordCount(%var); %i++){
-		if((%value = $inputTarget_Self.getGroup().vargroup.getVariable("Brick",getWord(%var ,%i),%brick)) !$= ""){
+		if((%value = %brick.getGroup().vargroup.getVariable("Brick",getWord(%var ,%i),%brick)) !$= ""){
 			%var = setWord(%var, %i, %value);
 		}
 	}
@@ -233,17 +236,17 @@ function fxDtsBrick::VCE_ifVariable(%brick,%var,%logic,%valb,%subdata,%client)
 }
 function AIPlayer::VCE_ifVariable(%bot,%var,%logic,%valb,%subdata,%client)
 {
-	%var = $inputTarget_Self.filterVCEString(%var,%client);
+	%var = %brick.filterVCEString(%var,%client);
 	for(%i = 0; %i < getWordCount(%var); %i++){
-		if((%value = $inputTarget_Self.getGroup().vargroup.getVariable("AIPlayer",getWord(%var ,%i),%bot)) !$= ""){
+		if((%value = %brick.getGroup().vargroup.getVariable("AIPlayer",getWord(%var ,%i),%bot)) !$= ""){
 			%var = setWord(%var, %i, %value);
 		}
 	}
-	$inputTarget_Self.VCE_ifValue(%var, %logic, %valb, %subdata, %client);
+	%brick.VCE_ifValue(%var, %logic, %valb, %subdata, %client);
 }
 function fxDtsBrick::VCE_ifValue(%brick,%vala,%logic,%valb,%subdata,%client)
 {
-	%client.eventProcessingObj = %brick;
+	%client.VCEProccessingObject = %brick;
 	if(!isObject(%client))
 		return;
 	if(isObject(%brick.getGroup().vargroup))
@@ -258,9 +261,9 @@ function fxDtsBrick::VCE_ifValue(%brick,%vala,%logic,%valb,%subdata,%client)
 			%subEnd = %brick.numEvents - 1;
 		}
 		if(%test)
-			%brick.ProcessVCERange(%subStart, %subEnd, "onVariableTrue", %client);
+			%brick.VCE_ProcessVCERange(%subStart, %subEnd, "onVariableTrue", %client);
 		else
-		    %brick.ProcessVCERange(%subStart, %subEnd, "onVariableFalse", %client);
+		    %brick.VCE_ProcessVCERange(%subStart, %subEnd, "onVariableFalse", %client);
 	}
 }
 function fxDtsBrick::VCE_retroCheck(%brick,%vala,%logic,%valb,%subdata,%client)
@@ -298,7 +301,7 @@ function fxDtsBrick::VCE_retroCheck(%brick,%vala,%logic,%valb,%subdata,%client)
 }
 function fxDtsBrick::VCE_stateFunction(%brick,%name,%subdata,%client)
 {
-	%client.eventProcessingObj = %brick;
+	%client.VCEProccessingObject = %brick;
 	if(isObject(%brick.getGroup().vargroup))
 	{
 		if(getWordCount(%subdata) != 2)
@@ -315,10 +318,10 @@ function fxDtsBrick::VCE_stateFunction(%brick,%name,%subdata,%client)
 }
 function fxDtsBrick::VCE_callFunction(%brick,%name,%args,%delay,%client)
 {
-	%preBrick = %client.eventProcessingObj;
+	%preBrick = %client.VCEProccessingObject;
 	if(!isObject(%client))
 		return;
-	%client.eventProcessingObj = %brick;
+	%client.VCEProccessingObject = %brick;
 	if(isObject(%brick.getGroup().vargroup))
 	{
 		if(%brick == %preBrick){
@@ -343,7 +346,7 @@ function fxDtsBrick::VCE_callFunction(%brick,%name,%args,%delay,%client)
 		if(getWordCount(%brick.vceFunction[%name]) < 2 && !%subStart)
 		{	
 			%brick.onVariableFunction(%client,0,%brick.numEvents);
-			%client.eventProcessingObj = %preBrick;
+			%client.VCEProccessingObject = %preBrick;
 			return;
 		}
 		if(!%subStart){
@@ -355,12 +358,12 @@ function fxDtsBrick::VCE_callFunction(%brick,%name,%args,%delay,%client)
 			%subStart = 0;
 			%subEnd = %brick.numEvents - 1;
 		}
-		%brick.ProcessVCERange(%subStart, %subEnd, "onVariableFunction", %client);
+		%brick.VCE_ProcessVCERange(%subStart, %subEnd, "onVariableFunction", %client);
 	}
-	%client.eventProcessingObj = %preBrick;
+	%client.VCEProccessingObject = %preBrick;
 }
 function fxDTSBrick::VCE_cancelFunction(%brick,%name,%client){
-	%client.eventProcessingObj = %brick;
+	%client.VCEProccessingObject = %brick;
 	%name = %brick.filterVariableString(%name,%client);
 	%count = %brick.functionScheduleCount[%name];
 	for(%i = 0; %i < %count; %i++)
@@ -424,14 +427,14 @@ function fxDtsBrick::VCE_relayCallFunction(%brick,%direction,%name,%args,%delay,
 			%searchObj.VCE_callFunction(%name,%args,%delay,%client);
 		}
 	}
-	%client.eventProcessingObj = %brick;
+	%client.VCEProccessingObject = %brick;
 }
 function fxDTSBrick::VCE_startFunction(%brick,%name,%range,%client){
 	//empty function as it's just a pointer
 }
 function fxDtsBrick::VCE_saveVariable(%brick,%type,%vars,%client)
 {
-	%client.eventProcessingObj = %brick;
+	%client.VCEProccessingObject = %brick;
 	if(!isObject(%client))
 		return;
 	if(isObject(%brick.getGroup().vargroup))
@@ -449,7 +452,7 @@ function fxDtsBrick::VCE_saveVariable(%brick,%type,%vars,%client)
 }
 function fxDtsBrick::VCE_loadVariable(%brick,%type,%vars,%client)
 {
-	%client.eventProcessingObj = %brick;
+	%client.VCEProccessingObject = %brick;
 	if(!isObject(%client))
 		return;
 	if(isObject(%brick.getGroup().vargroup))
@@ -466,7 +469,7 @@ function fxDtsBrick::VCE_loadVariable(%brick,%type,%vars,%client)
 	}
 }
 //Stolen from firerelaynum as this is the best and strongest solution
-function SimObject::ProcessVCERange(%obj, %start, %end, %inputEvent, %client)
+function SimObject::VCE_ProcessVCERange(%obj, %start, %end, %inputEvent, %client)
 {
 	// Only check for those events we are interested in
 	if (%start $= "" || %end $= "")
@@ -545,12 +548,12 @@ function SimObject::ProcessVCERange(%obj, %start, %end, %inputEvent, %client)
 			// Call for event function
 			switch (%numParams)
 			{
-			case 0: %event = %next.schedule(%eventDelay, %eventOutput);
-			case 1: %event = %next.schedule(%eventDelay, %eventOutput, %p1);
-			case 2: %event = %next.schedule(%eventDelay, %eventOutput, %p1, %p2);
-			case 3: %event = %next.schedule(%eventDelay, %eventOutput, %p1, %p2, %p3);
-			case 4: %event = %next.schedule(%eventDelay, %eventOutput, %p1, %p2, %p3, %p4);
-			case 5: %event = %next.schedule(%eventDelay, %eventOutput, %p1, %p2, %p3, %p4, %p5);
+			case 0: %event = %next.schedule(%eventDelay, %eventOutput,%obj);
+			case 1: %event = %next.schedule(%eventDelay, %eventOutput, %p1,%obj);
+			case 2: %event = %next.schedule(%eventDelay, %eventOutput, %p1, %p2,%obj);
+			case 3: %event = %next.schedule(%eventDelay, %eventOutput, %p1, %p2, %p3,%obj);
+			case 4: %event = %next.schedule(%eventDelay, %eventOutput, %p1, %p2, %p3, %p4,%obj);
+			case 5: %event = %next.schedule(%eventDelay, %eventOutput, %p1, %p2, %p3, %p4, %p5,%obj);
 			}
 			
 			// To be able to cancel an event

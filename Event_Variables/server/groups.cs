@@ -21,7 +21,7 @@ function getVariableGroupFromObject(%obj)
 	else if(%classname $= "Local")
 		%vargroup = nameToID("VariableGroup_"@%obj.brickGroup.BL_ID);
 	else if(%classname $= "Bot")
-		%vargroup = nameToID("VariableGroup_"@%brick.hbot);
+		%vargroup = nameToID("VariableGroup_"@%obj.brick.getGroup().BL_ID);
 	if(isObject(%vargroup))
 		return %vargroup;
 	return -1;
@@ -49,9 +49,12 @@ function VariableGroup::setVariable(%group,%type,%name,%value,%obj)
 }
 function VariableGroup::getVariable(%group,%type,%name,%obj)
 {
-	if(!isObject(%group) || $VCE::Server::SpecialVar[%obj.getClassName(),%name] !$= "")
-		return;
-	return %group.value[%type,%obj,%name];
+	if(isObject(%group)){
+		if($VCE::Server::SpecialVar[%obj.getClassName(),%name] !$= "")
+			return eval("return" SPC strReplace($VCE::Server::SpecialVar[%type,%name],"%this",%obj) @ ";");
+		else
+			return %group.value[%type,%obj,%name];
+	}
 }
 function VariableGroup::saveVariable(%group,%type,%name,%obj)
 {

@@ -67,7 +67,6 @@ function fxDtsBrick::onVariableUpdate(%brick,%client)
 	$inputTarget_Client = %client;
 	$inputTarget_Vehicle = %brick.vehicle;
 	$inputTarget_Minigame = getMinigameFromObject(%client);
-	%brick.processInputEvent("onVariableUpdate",%client);
 }
 function fxDtsBrick::onVariableTrue(%brick,%client,%start,%end)
 {
