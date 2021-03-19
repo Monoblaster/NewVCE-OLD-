@@ -203,14 +203,12 @@ function Vehicle::VCE_ifVariable(%vehicle,%var,%logic,%valb,%subdata,%client,%br
 }
 function Player::VCE_ifVariable(%player,%var,%logic,%valb,%subdata,%client,%brick)
 {
-	talk();
 	%var = %brick.filterVCEString(%var,%client);
 	for(%i = 0; %i < getWordCount(%var); %i++){
 		if((%value = %brick.getGroup().vargroup.getVariable("Player",getWord(%var ,%i),%player)) !$= ""){
 			
 			%var = setWord(%var, %i, %value);
 		}
-		talk(%value);
 	}
 	%brick.VCE_ifValue(%var, %logic, %valb, %subdata, %client);
 }
