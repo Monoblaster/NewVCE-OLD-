@@ -23,14 +23,14 @@ package VCE_Main
 	{
 		%obj = %brick;
 		if(isObject(%obj))
-			return Parent::ChatMessage(%client,%obj(%msg,%client));
+			return Parent::ChatMessage(%client,%obj.filterVCEString(%msg,%client));
 		return Parent::ChatMessage(%client,%msg);
 	}
 	function gameConnection::CenterPrint(%client,%msg,%time,%client,%brick)
 	{
 		%obj = %brick;
 		if(isObject(%obj))	
-			return Parent::CenterPrint(%client,%obj(%msg,%client), %time);
+			return Parent::CenterPrint(%client,%obj.filterVCEString(%msg,%client), %time);
 		return Parent::CenterPrint(%client,%msg,%time);
 	}
 	function gameConnection::BottomPrint(%client,%msg,%time,%hideBar,%brick)
