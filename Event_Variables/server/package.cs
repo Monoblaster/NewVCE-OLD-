@@ -23,21 +23,21 @@ package VCE_Main
 	{
 		%obj = %brick;
 		if(isObject(%obj))
-			return Parent::ChatMessage(%client,%client.VCEProccessingObject.filterVCEString(%msg,%client));
+			return Parent::ChatMessage(%client,%obj(%msg,%client));
 		return Parent::ChatMessage(%client,%msg);
 	}
 	function gameConnection::CenterPrint(%client,%msg,%time,%client,%brick)
 	{
 		%obj = %brick;
 		if(isObject(%obj))	
-			return Parent::CenterPrint(%client,%client.VCEProccessingObject.filterVCEString(%msg,%client), %time);
+			return Parent::CenterPrint(%client,%obj(%msg,%client), %time);
 		return Parent::CenterPrint(%client,%msg,%time);
 	}
 	function gameConnection::BottomPrint(%client,%msg,%time,%hideBar,%brick)
 	{
 		%obj = %brick;
 		if(isObject(%obj))
-			return Parent::BottomPrint(%client,%client.VCEeventProcessingObj.filterVCEString(%msg,%client), %time, %hideBar);
+			return Parent::BottomPrint(%client,%obj.filterVCEString(%msg,%client), %time, %hideBar);
 		return Parent::BottomPrint(%client,%msg,%time, %hideBar);
 	}
 	function miniGameSO::BottomPrintAll(%mini,%msg,%time,%client,%brick)
@@ -47,7 +47,7 @@ package VCE_Main
 		%obj = %brick;
 		if(isObject(%obj)){
 			for(%i=0;%i<%mini.numMembers;%i++)
-				Parent::BottomPrint(%mini.getObject(%i),%client.VCEeventProcessingObj.filterVCEString(%msg,%mini.getObject(%i)), %time, 0);
+				Parent::BottomPrint(%mini.getObject(%i),%obj.filterVCEString(%msg,%mini.getObject(%i)), %time, 0);
 		} else{
 			for(%i=0;%i<%mini.numMembers;%i++)
 				Parent::BottomPrint(%mini.getObject(%i),%msg,%time, 0);
@@ -60,7 +60,7 @@ package VCE_Main
 		%obj = %brick;
 		if(isObject(%obj)){
 			for(%i=0;%i<%mini.numMembers;%i++)
-				Parent::CenterPrint(%mini.getObject(%i),%client.VCEeventProcessingObj.filterVCEString(%msg,%mini.getObject(%i)), %time);
+				Parent::CenterPrint(%mini.getObject(%i),%obj.filterVCEString(%msg,%mini.getObject(%i)), %time);
 		} else{
 			for(%i=0;%i<%mini.numMembers;%i++)
 				Parent::CenterPrint(%client,%msg,%time);
@@ -69,10 +69,10 @@ package VCE_Main
 	function miniGameSO::ChatMsgAll(%mini,%msg,%client,%brick)
 	{
 		%obj = %brick;
-		%client.VCEeventProcessingObj = 0;
+		%obj = 0;
 		if(isObject(%obj)){
 			for(%i=0;%i<%mini.numMembers;%i++)
-				Parent::ChatMessage(%mini.getObject(%i),%client.VCEeventProcessingObj.filterVCEString(%msg,%mini.getObject(%i)));
+				Parent::ChatMessage(%mini.getObject(%i),%obj.filterVCEString(%msg,%mini.getObject(%i)));
 		} else{
 			for(%i=0;%i<%mini.numMembers;%i++)
 				Parent::ChatMessage(%mini.getObject(%i),%msg);
