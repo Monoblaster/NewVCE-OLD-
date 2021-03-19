@@ -3,6 +3,16 @@ Stable: Was tested to be safe and usually approved by RTB file moderators.
 Public Beta: Was either hosted on a public server for people to try out or released by post (not uploaded to the add-ons section as official) to find bugs.
 Private Beta: Was released amongst our beta testers.
 Skipped: This version was skipped from stable release for certain reasons.
+Version 7.32 (Released Beta):
+   <li> Removed the compatibility mode preference and is now forced
+   <li> Compatibility with older vce saves actually works now
+   <li> All non self target events now work properly 100% of the time
+   <li> Fixed special variables not being able to be reference in ifVariable and modVariable
+   <li> Text display of VCE variables may be more accurate
+Version 7.31 (Released Beta):
+   <li> Added a compatibility mode preference to allow compatibility with older saves of vce events; this is on by default
+   <li> Changed how ranges of input events are called to fix specific edge cases
+   <li> Fix ifVariable functions so they actually work now
 Version 7.30 (Released Beta):
    <li> Added /SVD which will tell you every special varaible on a server
    <li> Fixed the target list extender to include targets that were there orriginaly
