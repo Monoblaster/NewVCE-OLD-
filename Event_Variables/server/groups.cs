@@ -41,20 +41,27 @@ function VCE_createVariableGroup(%brick)
 		%brickgroup.vargroup.client = %brickgroup.client;
 	}
 }
-function VariableGroup::setVariable(%group,%type,%name,%value,%obj)
+function VariableGroup::setVariable(%group,%name,%value,%obj)
 {
 	if(!isObject(%group) || $VCE::Server::SpecialVar[%obj.getClassName(),%name] !$= "")
 		return;
-	%group.value[%type,%obj,%name] = %value;
+	%group.value[%obj.getClassName(),%name] = %value;
 }
-function VariableGroup::getVariable(%group,%type,%name,%obj)
+function VariableGroup::getVariable(%group,%name,%obj)
 {
+	
+	%val = 0;
 	if(isObject(%group)){
 		if($VCE::Server::SpecialVar[%obj.getClassName(),%name] !$= "")
-			return eval("return" SPC strReplace($VCE::Server::SpecialVar[%type,%name],"%this",%obj) @ ";");
+			%val = eval("return" SPC strReplace($VCE::Server::SpecialVar[%obj.getClassName(),%name],"%this",%obj) @ ";");
 		else
-			return %group.value[%type,%obj,%name];
+			%val = %group.value[%obj.getClassName(),%name];
+		
+		if(%val $= "")
+			%val = 0;
+		
 	}
+	return %val;
 }
 function VariableGroup::saveVariable(%group,%type,%name,%obj)
 {

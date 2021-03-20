@@ -7,15 +7,21 @@
 //	@time 4:44 PM 14/04/2011
 //---
 //updating filterVariableString to better suit me
-$VCE::Sever::VarType[0] = "Brick" TAB "FxDTSBrick" TAB "%brick";
-$VCE::Sever::VarType[1] = "Player" TAB "Player" TAB "%client.player";
-$VCE::Sever::VarType[2] = "Client" TAB "GameConnection" TAB "%client";
-$VCE::Sever::VarType[3] = "Minigame" TAB "MinigameSO" TAB "getMinigameFromObject(%brick)";
-$VCE::Sever::VarType[4] = "Vehicle" TAB "Vehicle" TAB "%brick.vehicle";
-$VCE::Sever::VarType[5] = "Bot" TAB "AIPlayer" TAB "%brick.hBot";
-$VCE::Sever::VarType[6] = "Local" TAB "ScriptObject" TAB "%client.brickgroup.vargroup";
-//global is always special so we don't need a third field
-$VCE::Sever::VarType[7] = "Global" TAB "GLOBAL";
+$VCE::Sever::VarType["Brick"] = "%brick";
+$VCE::Sever::VarType["Br"] = "%brick";
+$VCE::Sever::VarType["Player"] = "%client.player";
+$VCE::Sever::VarType["Pl"] = "%client.player";
+$VCE::Sever::VarType["Client"] = "%client";
+$VCE::Sever::VarType["Cl"] = "%client";
+$VCE::Sever::VarType["Minigame"] = "getMinigameFromObject(%brick)";
+$VCE::Sever::VarType["Mg"] = "getMinigameFromObject(%brick)";
+$VCE::Sever::VarType["Vehicle"] = "%brick.vehicle";
+$VCE::Sever::VarType["Ve"] = "%brick.vehicle";
+$VCE::Sever::VarType["Bot"] = "%brick.hBot";
+$VCE::Sever::VarType["Bt"] = "%brick.hBot";
+$VCE::Sever::VarType["Local"] = "%brick.getGroup().vargroup";
+$VCE::Sever::VarType["Lo"] = "%brick.getGroup().vargroup";
+
 //acts like advanced vce's expression but not as an event we skip 0 because 0 is just a set function
 $VCE::Server::Operator["+"] = 1 TAB 11;
 $VCE::Server::Operator["-"] = 2 TAB 11;
@@ -189,20 +195,13 @@ function fxDTSBrick::filterVCEString(%brick,%string,%client){
 		%var = getSubStr(%things,strPos(%things,":") + 1, 4000);
 		%c = 0;
 		if(striPos(%mode,"nb_") == 0){
-			%brick = %brick.getGroup().NTObject_[getSubStr(%mode,3,strlen(%mode) - 3), 0];
-			%mode = "br";
+			//%brick = %brick.getGroup().NTObject_[getSubStr(%mode,3,strlen(%mode) - 3), 0];
+			//%mode = "br";
 		}
 		if(isObject(%brick)){
-			while($VCE::Sever::VarType[%c] !$= ""){
-				%field = $VCE::Sever::VarType[%c];
-				if(striPos(getField(%field, 0), %mode) == 0){
-					%obj = eval("return" SPC getField(%field,2) @ "\;");
-					if($VCE::Server::SpecialVar[getField(%field, 1),%var] $= "")
-						%product = %brick.getGroup().varGroup.getVariable(getField(%field,0), %var, %obj);
-					else
-						%product = eval("return" SPC strReplace($VCE::Server::SpecialVar[getField(%field, 1),%var],"%this",%obj) @ ";");
-				}
-				%c++;
+			if($VCE::Sever::VarType[%mode] !$= ""){
+				%obj = eval("return" SPC $VCE::Sever::VarType[%mode] @ "\;");
+				%product = %brick.getGroup().varGroup.getVariable(%var, %obj);
 			}
 		}
 		%brick = %ogBrick;
@@ -222,16 +221,13 @@ function fxDTSBrick::filterVCEString(%brick,%string,%client){
 function filterVariableString(%string,%brick,%client,%player,%vehicle){
 	return %brick.filterVCEString(%string, %client);
 }
-function getVariableReplacerObjectName(%objectClass){
-	%c = 0;
-	while((%field = $VCE::Sever::VarType[%c]) !$= ""){
-		if(getField(%field,1) $= %objectClass){
-			return getField(%field,0);
-		}
-		%c++;
-	}
-	return %objectClass;
-}
+$VCE::Server::ObjectToReplacer["GameConnection"] = "Client";
+$VCE::Server::ObjectToReplacer["Player"] = "Player";
+$VCE::Server::ObjectToReplacer["fxDTSBrick"] = "Brick";
+$VCE::Server::ObjectToReplacer["Vehicle"] = "Vehicle";
+$VCE::Server::ObjectToReplacer["AIPlayer"] = "Bot";
+$VCE::Server::ObjectToReplacer["MinigameSO"] = "Minigame";
+$VCE::Server::ObjectToReplacer["Global"] = "Global";
 
 function serverCmdSVD(%client,%catagory,%page){
 	%pageLength = 6;
@@ -240,7 +236,7 @@ function serverCmdSVD(%client,%catagory,%page){
 	%catagoryName = $VCE::Server::ReplacerDictionaryCatagory[%catagory - 1];
 	if(%catagory > 0 && %catagory <= $VCE::Server::ReplacerDictionaryCatagoryCount && %page > 0 && %page <= mCeil($VCE::Server::ReplacerDictionaryCatagoryEntryCount[%catagoryName] / %pageLength)){
 		
-		%client.chatMessage("<font:palatino linotype:20>\c2" @ getVariableReplacerObjectName(%catagoryName) SPC "Variable Replacers:");
+		%client.chatMessage("<font:palatino linotype:20>\c2" @ $VCE::Server::ObjectToReplacer[%catagoryName] SPC "Variable Replacers:");
 		//display replacers
 		
 		%c = (%page - 1) * %pageLength;
@@ -254,7 +250,7 @@ function serverCmdSVD(%client,%catagory,%page){
 		//display catagorys
 		%c = 0;
 		while((%name = $VCE::Server::ReplacerDictionaryCatagory[%c]) !$= ""){
-			%client.chatMessage("<font:palatino linotype:20>\c3" @ %c + 1 SPC "\c6|\c4" SPC getVariableReplacerObjectName(%name));
+			%client.chatMessage("<font:palatino linotype:20>\c3" @ %c + 1 SPC "\c6|\c4" SPC $VCE::Server::ObjectToReplacer[%name]);
 			%c++;
 		}
 		%client.chatMessage("<font:palatino linotype:20>\c2You may not be able to see the whole list, Page Up and Page Down to browse it.");
