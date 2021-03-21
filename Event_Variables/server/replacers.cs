@@ -6,21 +6,48 @@
 //  @auther Monoblaster/46426
 //	@time 4:44 PM 14/04/2011
 //---
-//updating filterVariableString to better suit me
-$VCE::Sever::VarType["Brick"] = "%brick";
-$VCE::Sever::VarType["Br"] = "%brick";
-$VCE::Sever::VarType["Player"] = "%client.player";
-$VCE::Sever::VarType["Pl"] = "%client.player";
-$VCE::Sever::VarType["Client"] = "%client";
-$VCE::Sever::VarType["Cl"] = "%client";
-$VCE::Sever::VarType["Minigame"] = "getMinigameFromObject(%brick)";
-$VCE::Sever::VarType["Mg"] = "getMinigameFromObject(%brick)";
-$VCE::Sever::VarType["Vehicle"] = "%brick.vehicle";
-$VCE::Sever::VarType["Ve"] = "%brick.vehicle";
-$VCE::Sever::VarType["Bot"] = "%brick.hBot";
-$VCE::Sever::VarType["Bt"] = "%brick.hBot";
-$VCE::Sever::VarType["Local"] = "%brick.getGroup().vargroup";
-$VCE::Sever::VarType["Lo"] = "%brick.getGroup().vargroup";
+
+function VCE_getObjectFromVarType(%id,%brick,%client){
+	//Variable replacer ID
+	if(%id $= "Brick" || %id $= "Br")
+		return %brick;
+	if(%id $= "Player" || %id $= "Pl")
+		return %client.player;
+	if(%id $= "Client" || %id $= "Cl")
+		return %client;
+	if(%id $= "Minigame" || %id $= "Mg")
+		return getMinigameFromObject(%brick);
+	if(%id $= "Vehicle" || %id $= "Ve")
+		return %brick.vehicle;
+	if(%id $= "Bot" || %id $= "Bo")
+		return %brick.hBot;
+	if(%id $= "Local" || %id $= "Lo")
+		return %brick.getGroup().vargroup;
+
+	//Number ID
+	if(%id == 0)
+		return %brick;
+	if(%id == 1)
+		return %client.player;
+	if(%id == 2)
+		return %client;
+	if(%id == 3)
+		return getMinigameFromObject(%brick);
+	if(%id == 4)
+		return %brick.vehicle;
+	if(%id == 5)
+		return %brick.hBot;
+	if(%id == 6)
+		return %brick.getGroup().vargroup;
+}
+//Actual objects names to replacer vars
+$VCE::Server::ObjectToReplacer["GameConnection"] = "Client";
+$VCE::Server::ObjectToReplacer["Player"] = "Player";
+$VCE::Server::ObjectToReplacer["fxDTSBrick"] = "Brick";
+$VCE::Server::ObjectToReplacer["Vehicle"] = "Vehicle";
+$VCE::Server::ObjectToReplacer["AIPlayer"] = "Bot";
+$VCE::Server::ObjectToReplacer["MinigameSO"] = "Minigame";
+$VCE::Server::ObjectToReplacer["Global"] = "Global";
 
 //acts like advanced vce's expression but not as an event we skip 0 because 0 is just a set function
 $VCE::Server::Operator["+"] = 1 TAB 11;
@@ -195,13 +222,15 @@ function fxDTSBrick::filterVCEString(%brick,%string,%client){
 		%var = getSubStr(%things,strPos(%things,":") + 1, 4000);
 		%c = 0;
 		if(striPos(%mode,"nb_") == 0){
-			//%brick = %brick.getGroup().NTObject_[getSubStr(%mode,3,strlen(%mode) - 3), 0];
-			//%mode = "br";
+			%brick = %brick.getGroup().NTObject_[getSubStr(%mode,3,strlen(%mode) - 3), 0];
+			%mode = "br";
 		}
-		if(isObject(%brick)){
-			if($VCE::Sever::VarType[%mode] !$= ""){
-				%obj = eval("return" SPC $VCE::Sever::VarType[%mode] @ "\;");
-				%product = %brick.getGroup().varGroup.getVariable(%var, %obj);
+		if(isObject(%brick) && isObject(%client)){
+			if(isObject(%obj = VCE_getObjectFromVarType(%mode,%brick,%client))){
+				if($VCE::Server::SpecialVar[%obj.getClassName(),%var] !$= "")
+					%product = eval("return" SPC strReplace($VCE::Server::SpecialVar[%obj.getClassName(),%var],"%this",%obj) @ ";");
+				else
+					%product = %brick.getGroup().varGroup.getVariable(%var, %obj);
 			}
 		}
 		%brick = %ogBrick;
@@ -217,17 +246,11 @@ function fxDTSBrick::filterVCEString(%brick,%string,%client){
 	}
 	return %prev @ %product @ %next;
 }
+
 //for compatibility
 function filterVariableString(%string,%brick,%client,%player,%vehicle){
 	return %brick.filterVCEString(%string, %client);
 }
-$VCE::Server::ObjectToReplacer["GameConnection"] = "Client";
-$VCE::Server::ObjectToReplacer["Player"] = "Player";
-$VCE::Server::ObjectToReplacer["fxDTSBrick"] = "Brick";
-$VCE::Server::ObjectToReplacer["Vehicle"] = "Vehicle";
-$VCE::Server::ObjectToReplacer["AIPlayer"] = "Bot";
-$VCE::Server::ObjectToReplacer["MinigameSO"] = "Minigame";
-$VCE::Server::ObjectToReplacer["Global"] = "Global";
 
 function serverCmdSVD(%client,%catagory,%page){
 	%pageLength = 6;

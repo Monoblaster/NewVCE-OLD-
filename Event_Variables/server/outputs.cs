@@ -127,114 +127,44 @@ function fxDTSBrick::doVCEVarFunction(%brick, %function, %oldValue, %newValue, %
 	if(%function == 58)
 		return strPos(%oldValue,getField(%newValue, 0)) > -1;
 }
-function SimObject::VCE_modVariable(%obj,%name,%logic,%value,%client,%brick){
-	talk("test");
-	if(!isObject(%client))
+function SimObject::VCE_modVariable(%obj,%varName,%logic,%value,%client,%brick){
+	if(!(isObject(%client) || isObject(%obj) || isObject(%brick)))
 		return;
-	%target = eval("return" SPC $VCE::Sever::VarType[%obj.getClassName()] @ "\;");
-	if(!isObject(%target))
-		return;
-	%name = %brick.filterVCEString(%name,%client);
-	%oldvalue = %brick.getGroup().vargroup.getVariable(%name,%target);
+	%className = %obj.getClassName(); 
+	%varName = %brick.filterVCEString(%varName,%client);
+	%oldvalue = %brick.getGroup().vargroup.getVariable(%varName,%obj);
 	%newvalue = %brick.filterVCEString(%value,%client);
-	if($VCE::Server::SpecialVarEdit[%obj.getClassName,%name] !$= "" && isObject(%target)){
+
+	if($VCE::Server::SpecialVarEdit[%className,%varName] !$= ""){
 		if($Pref::VCE::canEditSpecialVars)
-			%oldvalue = eval("return" SPC strreplace($VCE::Server::SpecialVar[%obj.getClassName,%var],"%this",%target) @ ";");
+			%oldvalue = eval("return" SPC strreplace($VCE::Server::SpecialVar[%className,%varName],"%this",%obj) @ ";");
 		else
 			return;
 	}
+
 	%newValue = %brick.doVCEVarFunction(%logic, %oldValue, %newValue,%client);
-	%f = "VCE_" @ %category @ "_" @ $VCE::Server::SpecialVarEdit[%class,%name];
+	%f = "VCE_" @ $VCE::Server::ObjectToReplacer[%className] @ "_" @ $VCE::Server::SpecialVarEdit[%className,%varName];
+
 	if(isFunction(%f))
-	{
-		call(%f,%target,%newvalue,$VCE::Server::SpecialVarEditArg1[%class,%name],$VCE::Server::SpecialVarEditArg2[%class,%name],$VCE::Server::SpecialVarEditArg3[%class,%name],$VCE::Server::SpecialVarEditArg4[%class,%name]);
-		return;
-	} else{
-		%brick.getGroup().vargroup.setVariable(%name,%newValue,%target);
-	}
+		call(%f,%obj,%newvalue,$VCE::Server::SpecialVarEditArg1[%className,%varName],$VCE::Server::SpecialVarEditArg2[%className,%varName],$VCE::Server::SpecialVarEditArg3[%className,%varName],$VCE::Server::SpecialVarEditArg4[%className,%varName]);
+	else
+		%brick.getGroup().vargroup.setVariable(%varName,%newValue,%obj);
+
 	%brick.onVariableUpdate(%client);
 }
 
-	//function fxDtsBrick::VCE_modVariable(%brick,%type,%name,%logic,%value,%client)
-	//{
-	//	talk("test2");
-	//}
-	//function AIPlayer::VCE_modVariable(%bot,%name,%logic,%value,%client,%brick)
-	//{
-	//	talk("test3");
-	//if(%brick.getDataBlock().getName() $= "brickVehicleSpawnData")
-	//	Parent::VCE_modVariable(%bot, %name, %logic, %value, %client,%brick);
-	//else
-	//	Parent::VCE_modVariable(%bot, %name, %logic, %value, %client,%brick);
-	//}
-deActivatePackage("VCE_modVariable");
-activatePackage("VCE_modVariable");
-
-function MinigameSO::VCE_ifVariable(%mini,%var,%logic,%valb,%subdata,%client,%brick)
-{
-	%var = %brick.filterVCEString(%var,%client);
-	for(%i = 0; %i < getWordCount(%var); %i++){
-		if((%value = %brick.getGroup().vargroup.getVariable("MinigameSO",getWord(%var ,%i),%mini)) !$= ""){
-			%var = setWord(%var, %i, %value);
+package VCE_modVariable{
+	function fxDtsBrick::VCE_modVariable(%brick,%type,%varName,%logic,%value,%client)
+	{
+		if(isObject( %obj = VCE_getObjectFromVarType(%type,%brick,%client))){
+			Parent::VCE_modVariable(%obj, %varName, %logic, %value, %client, %brick);
 		}
 	}
-	%brick.VCE_ifValue(%var, %logic, %valb, %subdata, %client);
-}
-function Vehicle::VCE_ifVariable(%vehicle,%var,%logic,%valb,%subdata,%client,%brick)
-{
-	%var = %brick.filterVCEString(%var,%client);
-	for(%i = 0; %i < getWordCount(%var); %i++){
-		if((%value = %brick.getGroup().vargroup.getVariable("Vehicle",getWord(%var ,%i),%vehicle)) !$= ""){
-			%var = setWord(%var, %i, %value);
-		}
-	}
-	%brick.VCE_ifValue(%var, %logic, %valb, %subdata, %client);
-}
-function Player::VCE_ifVariable(%player,%var,%logic,%valb,%subdata,%client,%brick)
-{
-	%var = %brick.filterVCEString(%var,%client);
-	for(%i = 0; %i < getWordCount(%var); %i++){
-		if((%value = %brick.getGroup().vargroup.getVariable("Player",getWord(%var ,%i),%player)) !$= ""){
-			
-			%var = setWord(%var, %i, %value);
-		}
-	}
-	%brick.VCE_ifValue(%var, %logic, %valb, %subdata, %client);
-}
-function GameConnection::VCE_ifVariable(%client,%var,%logic,%valb,%subdata,%sourceClient,%brick)
-{
-	%var = %brick.filterVCEString(%var,%client);
-	for(%i = 0; %i < getWordCount(%var); %i++){
-		if((%value = %brick.getGroup().vargroup.getVariable("GameConnection",getWord(%var ,%i),%client)) !$= ""){
-			%var = setWord(%var, %i, %value);
-		}
-	}
-	%brick.VCE_ifValue(%var, %logic, %valb, %subdata, %client);
-}
-function fxDtsBrick::VCE_ifVariable(%brick,%var,%logic,%valb,%subdata,%client)
-{
-	%var = %brick.filterVCEString(%var,%client);
-	for(%i = 0; %i < getWordCount(%var); %i++){
-		if((%value = %brick.getGroup().vargroup.getVariable("Brick",getWord(%var ,%i),%brick)) !$= ""){
-			%var = setWord(%var, %i, %value);
-		}
-	}
-	%brick.VCE_ifValue(%var, %logic, %valb, %subdata, %client);
-}
-function AIPlayer::VCE_ifVariable(%bot,%var,%logic,%valb,%subdata,%client,%brick)
-{
-	%var = %brick.filterVCEString(%var,%client);
-	for(%i = 0; %i < getWordCount(%var); %i++){
-		if((%value = %brick.getGroup().vargroup.getVariable("AIPlayer",getWord(%var ,%i),%bot)) !$= ""){
-			%var = setWord(%var, %i, %value);
-		}
-	}
-	%brick.VCE_ifValue(%var, %logic, %valb, %subdata, %client);
-}
+};
 function SimObject::VCE_ifVariable(%obj,%var,%logic,%valb,%subdata,%client,%brick){
 	%var = %brick.filterVCEString(%var,%client);
 	for(%i = 0; %i < getWordCount(%var); %i++){
-		if((%value = %brick.getGroup().vargroup.getVariable(%obj.getClassName(), getWord(%var ,%i),%bot)) !$= ""){
+		if((%value = %brick.getGroup().vargroup.getVariable(getWord(%var ,%i), %obj)) !$= ""){
 			%var = setWord(%var, %i, %value);
 		}
 	}
@@ -296,22 +226,7 @@ function fxDtsBrick::VCE_retroCheck(%brick,%vala,%logic,%valb,%subdata,%client)
 }
 function fxDtsBrick::VCE_stateFunction(%brick,%name,%subdata,%client)
 {
-	if(isObject(%brick.getGroup().vargroup))
-	{
-		if(getWordCount(%subdata) != 2)
-			return;
-		%name = %brick.filterVCEString(%name,%client);
-
-		%subStart = getWord(%subdata,0);
-		%subEnd = getWord(%subdata,1);
-
-		if(%subStart $= "" || %subEnd $= ""){
-			%subStart = 0;
-			%subEnd = %brick.numEvents - 1;
-		}
-
-		%brick.vceFunction[%name] = %substart SPC %subend;
-	}
+	%brick.VCE_StartFunction(0,%name,%subdata,%client);
 }
 function fxDtsBrick::VCE_callFunction(%brick,%name,%args,%delay,%client,%preBrick)
 {
@@ -416,25 +331,45 @@ function fxDtsBrick::VCE_relayCallFunction(%brick,%direction,%name,%args,%delay,
 		}
 	}
 }
-function fxDTSBrick::VCE_startFunction(%brick,%name,%range,%client){
-	//empty function as it's just a pointer
+function fxDTSBrick::VCE_startFunction(%brick,%type,%name,%range,%client){
+	if(!isObject(%varGroup = %brick.getGroup().vargroup))
+		return;
+	
+	if(getWordCount(%subdata) != 2)
+		return;
+	%name = %brick.filterVCEString(%name,%client);
+
+	%subStart = getWord(%subdata,0);
+	%subEnd = getWord(%subdata,1);
+
+	if(%subStart $= "" || %subEnd $= ""){
+		%subStart = 0;
+		%subEnd = %brick.numEvents - 1;
+	}
+
+	if(%type == 0)
+		%brick.vceFunction[%name] == %subStart SPC %subEnd;
+	if(%type == 1){
+		if((%c = %varGroup.GetBrickFromLocalFunction(%name,%brick)) > 0)
+			%varGroup.vceLocalFunction[%name,%c] = %brick SPC %substart SPC %subEnd
+		else
+	}
+		%varGroup.vceLocalFunctionCount[%name]
+
 }
 function fxDtsBrick::VCE_saveVariable(%brick,%type,%vars,%client)
 {
-	if(!isObject(%client))
+	%varGroup = %brick.getGroup().vargroup;
+	if(!(isObject(%client) || isObject(%varGroup)))
 		return;
-	if(isObject(%brick.getGroup().vargroup))
-	{
-		%category = getField($VCE::Sever::VarType[%type],1);
-		%target = eval("return" SPC getField($VCE::Sever::VarType[%type],2) @ "\;");
-		if(!isObject(%target))
-			return;
-		%vargroup = %brick.getGroup().vargroup;
-		%vars = strReplace(%vars,",","\t");
-		%count = getFieldCount(%vars);
-		for(%i=0;%i<%count;%i++)
-			%vargroup.saveVariable(%category,trim(getField(%vars,%i),%target));
-	}
+
+	%obj = VCE_getObjectFromVarType(%type,%brick,%client);
+
+	%vars = strReplace(%vars,",","\t");
+	%count = getFieldCount(%vars);
+	for(%i=0;%i<%count;%i++)
+		%vargroup.saveVariable(trim(getField(%vars,%i)),%obj);
+
 }
 function fxDtsBrick::VCE_loadVariable(%brick,%type,%vars,%client)
 {
@@ -442,16 +377,27 @@ function fxDtsBrick::VCE_loadVariable(%brick,%type,%vars,%client)
 		return;
 	if(isObject(%brick.getGroup().vargroup))
 	{
-		%category = getField($VCE::Sever::VarType[%type],1);
-		%target = eval("return" SPC getField($VCE::Sever::VarType[%type],2) @ "\;");
-		if(!isObject(%target))
+		%obj = VCE_getObjectFromVarType(%type,%brick,%client);
+
+		if(!isObject(%obj))
 			return;
 		%vargroup = %brick.getGroup().vargroup;
 		%vars = strReplace(%vars,",","\t");
 		%count = getFieldCount(%vars);
 		for(%i=0;%i<%count;%i++)
-			%vargroup.loadVariable(%category,trim(getField(%vars,%i),%target));
+			%vargroup.loadVariable(trim(getField(%vars,%i)),%obj);
 	}
+}
+function VarGroup::GetBrickFromLocalFunction(%varGroup,%name,%brick){
+	if(!isObject(%brick))
+		return;
+	%total = %varGroup.vceLocalFunctionCount[%name]
+	%c = 1;
+	while(%c <= %total && getWord(%varGroup.vceLocalFunction[%name,%c], 0) != %brick)
+		%c++
+	if(%c > %total)
+		return 0
+	return %c;
 }
 //Stolen from firerelaynum as this is the best and strongest solution
 function SimObject::VCE_ProcessVCERange(%obj, %start, %end, %inputEvent, %client)

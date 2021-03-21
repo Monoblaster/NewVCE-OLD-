@@ -115,23 +115,8 @@ package VCE_Main
 		%i = mFloor (%brick.numEvents);
 		//startfunction setup
 		if(%outputName $= "VCE_StartFunction"){
-			if(isObject(%brick.getGroup().vargroup))
-			{
-				if(getWordCount(%par2) != 2)
-					return;
-				%name = %brick.filterVCEString(%par1,%client);
-
-				%subStart = getWord(%par2,0);
-				%subEnd = getWord(%par2,1);
-
-				if(%subStart $= "" || %subEnd $= ""){
-					%subStart = 0;
-					%subEnd = %brick.numEvents - 1;
-				}
-				
-				%brick.vceFunction[%name] = %substart SPC %subend;
-			}
-		}
+			%brick.VCE_startFunction(%par1,%par2,%par3,%client)
+		}	
 		//loop checking
 		if((%inputName $= "onVariableTrue" || %inputName $= "onVariableFalse") && (%outputName $= "VCE_ifVariable" || %outputName $= "VCE_ifValue") || (%inputName $= "onVariableUpdate" && (%outputName $= "VCE_ifValue" || %outputName $= "VCE_ifVariable")) || (%inputName $= "onVariableUpdate" && %outputName $= "VCE_modVariable")){
 			if (%delay < $Pref::VCE::LoopDelay)

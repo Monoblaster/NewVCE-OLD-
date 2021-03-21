@@ -41,62 +41,57 @@ function VCE_createVariableGroup(%brick)
 		%brickgroup.vargroup.client = %brickgroup.client;
 	}
 }
-function VariableGroup::setVariable(%group,%name,%value,%obj)
+function VariableGroup::setVariable(%group,%varName,%value,%obj)
 {
-	if(!isObject(%group) || $VCE::Server::SpecialVar[%obj.getClassName(),%name] !$= "")
+	%className = %obj.getClassName();
+	if(!isObject(%group) || $VCE::Server::SpecialVar[%className,%varName] !$= "")
 		return;
-	%group.value[%obj.getClassName(),%name] = %value;
+	%group.value[%className,%obj,%varName] = %value;
 }
-function VariableGroup::getVariable(%group,%name,%obj)
+function VariableGroup::getVariable(%group,%varName,%obj)
 {
-	
+	%className = %obj.getClassName();
 	%val = 0;
-	if(isObject(%group)){
-		if($VCE::Server::SpecialVar[%obj.getClassName(),%name] !$= "")
-			%val = eval("return" SPC strReplace($VCE::Server::SpecialVar[%obj.getClassName(),%name],"%this",%obj) @ ";");
-		else
-			%val = %group.value[%obj.getClassName(),%name];
+
+	if($VCE::Server::SpecialVar[%className,%varName] !$= "")
+		%val = eval("return" SPC strReplace($VCE::Server::SpecialVar[%className,%obj,%varName],"%this",%obj) @ ";");
+	else
+		%val = %group.value[%className,%obj,%varName];
 		
-		if(%val $= "")
-			%val = 0;
-		
-	}
+	if(%val $= "")
+		%val = 0;
 	return %val;
 }
-function VariableGroup::saveVariable(%group,%type,%name,%obj)
+function VariableGroup::saveVariable(%group,%varName,%obj)
 {
-	if(!isObject(%group) || $VCE::Server::SpecialVar[%obj.getClassName(),%name] !$= "")
+	if(!isObject(%obj))
 		return;
-	else
-	{
-		%classname = %obj.getClassname();
-		if(%group.value[%type,%obj,%name] $= "")
-			return;
-		if(%classname $= "Player"){
-				%value = %group.value[%type,%obj,%name];
-				%id = %obj.client.BL_ID;
-		} else if(%classname $= "GameConnection"){
-				%value = %group.value[%type,%obj,%name];
-				%id = %obj.BL_ID;
-		} else if(%classname $= "fxDTSBrick"){
-				%value = %group.value[%type,%obj,%name];
-				%id = %obj.getGroup().BL_ID;
-		} else if(%classname $= "ScriptObject"){
-				%value = %group.value[%type,%obj,%name];
-				%id = %obj.getGroup().vargroup;
-		} else{
-			warn("VariableGroup::saveVariable - Unable to save "@%obj@" because it is not an accepted class.");
-			return;
-		}
-		%line = VCE_getSaveLine(%group.bl_id,%id,%type,%name);
-		if(%line <= 0)
-			$VCE::Server::SaveLine[$VCE::Server::SaveLineCount++] = %group.BL_ID TAB %id TAB %type TAB %name TAB %value;
-		else
-			$VCE::Server::SaveLine[%line] = %group.BL_ID TAB %id TAB %type TAB %name TAB %value;
-		if(isEventPending($VCE::Server::SaveSchedule))
-			cancel($VCE::Server::SaveSchedule);
-		$VCE::Server::SaveSchedule = %group.schedule(300,"saveAllVariables",$VCE::Server::SavePath);
+	
+	%className = %obj.getClassName();
+
+	if($VCE::Server::SpecialVar[%className,%varName] !$= "")
+		return;
+
+	if((%value = %group.getVariable(%varName,%obj)) $= "")
+		return;
+	if(%classname $= "Player"){
+			%id = %obj.client.BL_ID;
+	} else if(%classname $= "GameConnection"){
+			%id = %obj.BL_ID;
+	} else if(%classname $= "fxDTSBrick" || %classname $= "ScriptObject"){
+			%id = %obj.getGroup().BL_ID;
+	} else{
+		warn("VariableGroup::saveVariable - Unable to save "@%obj@" because it is not an accepted class.");
+		return;
 	}
+	%line = VCE_getSaveLine(%group.bl_id,%id,%className,%varName);
+	if(%line <= 0)
+		$VCE::Server::SaveLine[$VCE::Server::SaveLineCount++] = %group.BL_ID TAB %id TAB %className TAB %varName TAB %value;
+	else
+		$VCE::Server::SaveLine[%line] = %group.BL_ID TAB %id TAB %className TAB %varName TAB %value;
+	if(isEventPending($VCE::Server::SaveSchedule))
+		cancel($VCE::Server::SaveSchedule);
+	$VCE::Server::SaveSchedule = %group.schedule(300,"saveAllVariables",$VCE::Server::SavePath);
 }
 function VariableGroup::saveAllVariables(%group,%path)
 {
@@ -108,34 +103,33 @@ function VariableGroup::saveAllVariables(%group,%path)
 	%file.close();
 	%file.delete();
 }
-function VariableGroup::loadVariable(%group,%type,%name,%obj)
+function VariableGroup::loadVariable(%group,%varName,%obj)
 {
-	if(!isObject(%group) || $VCE::Server::SpecialVar[%obj.getClassName(),%name] !$= "")
+
+	if(!isObject(%obj))
 		return;
-	else
-	{
-		%classname = %obj.getClassname();
-		if(%classname $= "Player"){
-				%value = %group.value[%type,%obj,%name];
-				%id = %obj.client.BL_ID;
-		} else if(%classname $= "GameConnection"){
-				%value = %group.value[%type,%obj,%name];
-				%id = %obj.BL_ID;
-		} else if(%classname $= "fxDTSBrick"){
-				%value = %group.value[%type,%obj,%name];
-				%id = %obj.getGroup().BL_ID;
-		} else if(%classname $= "ScriptObject"){
-				%value = %group.value[%type,%obj,%name];
-				%id = %obj.getGroup().vargroup;
-		} else{
-			warn("VariableGroup::loadVariable - Unable to load "@%obj@" because it is not an accepted class.");
-			return;
-		}
-		%line = VCE_getSaveLine(%group.BL_ID,%id,%type,%name);
-		if(%line == 0)
-			return;
-		%group.value[%type,%obj,%name] = getField($VCE::Server::SaveLine[%line],4);
+	
+	%className = %obj.getClassName();
+
+	if($VCE::Server::SpecialVar[%className,%varName] !$= "")
+		return;
+
+	if(%classname $= "Player"){
+			%id = %obj.client.BL_ID;
+	} else if(%classname $= "GameConnection"){
+			%id = %obj.BL_ID;
+	} else if(%classname $= "fxDTSBrick" || %classname $= "ScriptObject"){
+			%id = %obj.getGroup().BL_ID;
+	} else{
+		warn("VariableGroup::saveVariable - Unable to load "@%obj@" because it is not an accepted class.");
+		return;
 	}
+
+	%line = VCE_getSaveLine(%group.BL_ID,%id,%className,%varName);
+	if(%line == 0)
+		return;
+	%group.setVariable(%varName,getField($VCE::Server::SaveLine[%line],4),%obj);
+
 }
 function VCE_getSaveLine(%groupid,%id,%type,%name)
 {
