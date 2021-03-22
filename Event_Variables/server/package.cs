@@ -5,6 +5,46 @@
 //	@auther Monoblaster/46426
 //	@time 5:30 PM 16/04/2011
 //---
+//ARGS are not implented for this yet I HAVE NO IDEA IF I NEED THEM
+function VariableGroup::HookFunctionToEventFunction(%varGroup,%functionClass,%function,%functionArgs,%localFunctionName,%args)
+{
+	if(%functionClass !$= "")
+	{
+		if(!isFunction(%functionClass,%function))
+			return;
+		%functionArgs = "%obj," @ %functionArgs;
+	}
+	else
+	{
+		if(!isFunction(%function))
+			return;
+	}
+	
+	eval("package VCE_HookEventFunctions {function "@ %functionClass @"::"@ %function @"("@ %functionArgs @"){"@ %varGroup @".CallLocalFunction(\""@ %localFunctionName @"\");Parent::"@ %function @"("@ %functionArgs @");}};");
+}
+
+function activateEventFunctionHooks()
+{
+	activatePackage(VCE_HookEventFunctions);
+}
+function VariableGroup::CallLocalFunction(%varGroup,%functionName)
+{
+	%count = %vargroup.vceLocalFunctionCount[%functionName];
+	for(%i = 1; %i <= %count; %i++)
+	{
+
+		%sentence = %vargroup.vceLocalFunction[%functionName,%i];
+		
+		%localbrick = getWord(%sentence,0);
+		%subStart = getWord(%sentence,1);
+		%subEnd = getWord(%sentence,0);
+
+		if(!isObject(%localbrick))
+			continue;
+
+		%localbrick.VCE_ProcessVCERange(%subStart, %subEnd, "onVariableFunction", %vargroup.client);
+	}
+}
 package VCE_Main
 {
 	function fxDtsBrick::onPlant(%brick)

@@ -270,7 +270,7 @@ function VariableGroup::GetLocalFunctionFromBrick(%varGroup,%name,%brick)
 		return 0;
 	return %c;
 }
-function SimObject::VCE_callFunction(%obj,%name,%args,%delay,%client,%brick)
+function fxDTSBrick::VCE_callFunction(%obj,%name,%args,%delay,%client,%brick)
 {
 	if(!isObject(%client))
 		return;
@@ -436,7 +436,6 @@ function SimObject::VCE_ProcessVCERange(%obj, %start, %end, %inputEvent, %client
 	}
 	for (%i = %start; %i <= %end; %i++)
 	{
-		
 		// Already processed
 		if (%tempEvent[%i])
 			continue;
@@ -496,7 +495,6 @@ function SimObject::VCE_ProcessVCERange(%obj, %start, %end, %inputEvent, %client
 
 		%eventDelay = %obj.eventDelay[%i];
 		%eventOutput = %obj.eventOutput[%i];
-		
 		// Go through list/brick
 		for (%n = 0; %n < %objs; %n++)
 		{
@@ -508,12 +506,12 @@ function SimObject::VCE_ProcessVCERange(%obj, %start, %end, %inputEvent, %client
 			// Call for event function
 			switch (%numParams)
 			{
-			case 0: %event = %next.schedule(%eventDelay, %eventOutput,%obj);
-			case 1: %event = %next.schedule(%eventDelay, %eventOutput, %p1,%obj);
-			case 2: %event = %next.schedule(%eventDelay, %eventOutput, %p1, %p2,%obj);
-			case 3: %event = %next.schedule(%eventDelay, %eventOutput, %p1, %p2, %p3,%obj);
-			case 4: %event = %next.schedule(%eventDelay, %eventOutput, %p1, %p2, %p3, %p4,%obj);
-			case 5: %event = %next.schedule(%eventDelay, %eventOutput, %p1, %p2, %p3, %p4, %p5,%obj);
+			case 0: %event = %next.schedule(%eventDelay, %eventOutput);
+			case 1: %event = %next.schedule(%eventDelay, %eventOutput, %p1);
+			case 2: %event = %next.schedule(%eventDelay, %eventOutput, %p1, %p2);
+			case 3: %event = %next.schedule(%eventDelay, %eventOutput, %p1, %p2, %p3);
+			case 4: %event = %next.schedule(%eventDelay, %eventOutput, %p1, %p2, %p3, %p4);
+			case 5: %event = %next.schedule(%eventDelay, %eventOutput, %p1, %p2, %p3, %p4, %p5);
 			}
 			
 			// To be able to cancel an event
