@@ -33,7 +33,7 @@ package VCE_Main
 			return Parent::CenterPrint(%client,%obj.filterVCEString(%msg,%client), %time);
 		return Parent::CenterPrint(%client,%msg,%time);
 	}
-	function gameConnection::BottomPrint(%client,%msg,%time,%hideBar,%brick)
+	function gameConnection::BottomPrint(%client,%msg,%time,%hideBar,%client,%brick)
 	{
 		%obj = %brick;
 		if(isObject(%obj))
@@ -115,7 +115,7 @@ package VCE_Main
 		%i = mFloor (%brick.numEvents);
 		//startfunction setup
 		if(%outputName $= "VCE_StartFunction"){
-			%brick.VCE_startFunction(%par1,%par2,%par3,%client)
+			%brick.VCE_startFunction(%par1,%par2,%par3,%client);
 		}	
 		//loop checking
 		if((%inputName $= "onVariableTrue" || %inputName $= "onVariableFalse") && (%outputName $= "VCE_ifVariable" || %outputName $= "VCE_ifValue") || (%inputName $= "onVariableUpdate" && (%outputName $= "VCE_ifValue" || %outputName $= "VCE_ifVariable")) || (%inputName $= "onVariableUpdate" && %outputName $= "VCE_modVariable")){

@@ -179,12 +179,15 @@ function fxDtsBrick::VCE_ifValue(%brick,%vala,%logic,%valb,%subdata,%client)
 		%vala = %brick.filterVCEString(%vala,%client);
 		%valb = %brick.filterVCEString(%valb,%client);
 		%test = %brick.doVCEVarFunction(%logic + 52,%vala,%valb,%client);
-		%subStart = mClamp(getWord(%subdata,0),0,%brick.numEvents);
-		%subEnd = mClamp(getWord(%subdata,1),0,%brick.numEvents);
-		if(%subStart == 0 && %subEnd == 0){
-			%subStart = 0;
-			%subEnd = %brick.numEvents - 1;
-		}
+
+		%subStart = getWord(%subData,0);
+		%subEnd = getWord(%subData,1);
+
+		if(%subStart $= "")
+			%subStart = -1;
+		if(%subEnd $= "")	
+			%subEnd =  -1;
+
 		if(%test)
 			%brick.VCE_ProcessVCERange(%subStart, %subEnd, "onVariableTrue", %client);
 		else
@@ -228,42 +231,102 @@ function fxDtsBrick::VCE_stateFunction(%brick,%name,%subdata,%client)
 {
 	%brick.VCE_StartFunction(0,%name,%subdata,%client);
 }
-function fxDtsBrick::VCE_callFunction(%brick,%name,%args,%delay,%client,%preBrick)
+function fxDTSBrick::VCE_startFunction(%brick,%type,%name,%subData,%client)
+{
+
+	if(!isObject(%varGroup = %brick.getGroup().vargroup))
+		return;
+	%name = %brick.filterVCEString(%name,%client);
+
+	%subStart = getWord(%subData,0);
+	%subEnd = getWord(%subData,1);
+
+	if(%subStart $= "")
+		%subStart = -1;
+	if(%subEnd $= "")	
+		%subEnd =  -1;
+
+	if(%type == 0)
+		%brick.vceFunction[%name] = %subStart SPC %subEnd;
+
+	if(%type == 1)
+	{
+		if((%c = %varGroup.GetLocalFunctionFromBrick(%name,%brick)) > 0)
+			%varGroup.vceLocalFunction[%name,%c] = %brick SPC %substart SPC %subEnd;
+		else
+			%varGroup.vceLocalFunction[%name,%varGroup.vceLocalFunctionCount[%name]++] = %brick SPC %substart SPC %subEnd;
+	}
+
+}
+function VariableGroup::GetLocalFunctionFromBrick(%varGroup,%name,%brick)
+{
+	if(!isObject(%brick))
+		return;
+	%total = %varGroup.vceLocalFunctionCount[%name];
+	%c = 1;
+	while(%c <= %total && getWord(%varGroup.vceLocalFunction[%name,%c], 0) != %brick)
+		%c++;
+	if(%c > %total)
+		return 0;
+	return %c;
+}
+function SimObject::VCE_callFunction(%obj,%name,%args,%delay,%client,%brick)
 {
 	if(!isObject(%client))
 		return;
-	if(isObject(%brick.getGroup().vargroup))
+	if(isObject(%obj.getGroup().vargroup))
 	{
-		if(%brick == %preBrick){
-			%name = %brick.filterVCEString(%name,%client);
-			%delay = %brick.filterVCEString(%delay,%client);
-			%args = %brick.filterVCEString(%args,%client);
-		} else{
-			%name = %preBrick.filterVCEString(%name,%client);
-			%delay = %preBrick.filterVCEString(%delay,%client);
-			%args = %preBrick.filterVCEString(%args,%client);
-		}
+		%varGroup = %obj.getGroup().vargroup;
+		
+		%name = %brick.filterVCEString(%name,%client);
+		%delay = %brick.filterVCEString(%delay,%client);
+		%args = %brick.filterVCEString(%args,%client);
+
 		if(%delay < 0)
 			%delay = 0;
 		%args = strReplace(%args,"|","\t");
 		%args = strReplace(%args,",","\t");
 		%fc = getFieldCount(%args);
-		for(%i=0;%i<%fc;%i++)
+		if(%obj.vceFunction[%name] !$= "")
 		{
-			%arg[%i] = getField(%args,%i);		
-			%brick.getGroup().vargroup.setVariable("Brick","arg" @ %i,%arg[%i],%brick);
+			for(%i=0;%i<%fc;%i++)
+			{
+				%arg[%i] = getField(%args,%i);		
+				%varGroup.setVariable("arg" @ %i,%arg[%i],%obj);
+			}	
+
+			%subStart = getWord(%obj.vceFunction[%name], 0);
+			%subEnd = getWord(%obj.vceFunction[%name], 1);
+
+			%varGroup.setVariable("argcount",getFieldCount(%args),%obj);
+
+			%obj.VCE_ProcessVCERange(%subStart, %subEnd, "onVariableFunction", %client);
+		} 
+		else if((%count = %vargroup.vceLocalFunctionCount[%name]) > 0)
+		{
+			for(%i = 1; %i <= %count; %i++)
+			{
+				%sentence = %vargroup.vceLocalFunction[%name,%i];
+				
+				%localbrick = getWord(%sentence,0);
+				%subStart = getWord(%sentence,1);
+				%subEnd = getWord(%sentence,0);
+
+				if(!isObject(%localbrick))
+					continue;
+				
+				for(%j=0;%j<%fc;%j++)
+				{
+					%arg[%j] = getField(%args,%j);		
+					%varGroup.setVariable("arg" @ %j,%arg[%j],%localBrick);
+				}
+
+				%varGroup.setVariable("argcount",getFieldCount(%args),%localBrick);
+
+				%localbrick.VCE_ProcessVCERange(%subStart, %subEnd, "onVariableFunction", %client);
+			}
 		}
-
-		%subStart = getWord(%brick.vceFunction[%name], 0);
-		%subEnd = getWord(%brick.vceFunction[%name], 1);
-
-		%brick.getGroup().vargroup.setVariable("Brick","argcount",getFieldCount(%args),%brick);
-
-		%subStart = mClamp(%subStart,0,%brick.numEvents);
-		%subEnd = mClamp(%subEnd,0,%brick.numEvents);
-
-
-		%brick.VCE_ProcessVCERange(%subStart, %subEnd, "onVariableFunction", %client);
+		
 	}
 }
 function fxDTSBrick::VCE_cancelFunction(%brick,%name,%client){
@@ -331,32 +394,6 @@ function fxDtsBrick::VCE_relayCallFunction(%brick,%direction,%name,%args,%delay,
 		}
 	}
 }
-function fxDTSBrick::VCE_startFunction(%brick,%type,%name,%range,%client){
-	if(!isObject(%varGroup = %brick.getGroup().vargroup))
-		return;
-	
-	if(getWordCount(%subdata) != 2)
-		return;
-	%name = %brick.filterVCEString(%name,%client);
-
-	%subStart = getWord(%subdata,0);
-	%subEnd = getWord(%subdata,1);
-
-	if(%subStart $= "" || %subEnd $= ""){
-		%subStart = 0;
-		%subEnd = %brick.numEvents - 1;
-	}
-
-	if(%type == 0)
-		%brick.vceFunction[%name] == %subStart SPC %subEnd;
-	if(%type == 1){
-		if((%c = %varGroup.GetBrickFromLocalFunction(%name,%brick)) > 0)
-			%varGroup.vceLocalFunction[%name,%c] = %brick SPC %substart SPC %subEnd
-		else
-	}
-		%varGroup.vceLocalFunctionCount[%name]
-
-}
 function fxDtsBrick::VCE_saveVariable(%brick,%type,%vars,%client)
 {
 	%varGroup = %brick.getGroup().vargroup;
@@ -388,23 +425,15 @@ function fxDtsBrick::VCE_loadVariable(%brick,%type,%vars,%client)
 			%vargroup.loadVariable(trim(getField(%vars,%i)),%obj);
 	}
 }
-function VarGroup::GetBrickFromLocalFunction(%varGroup,%name,%brick){
-	if(!isObject(%brick))
-		return;
-	%total = %varGroup.vceLocalFunctionCount[%name]
-	%c = 1;
-	while(%c <= %total && getWord(%varGroup.vceLocalFunction[%name,%c], 0) != %brick)
-		%c++
-	if(%c > %total)
-		return 0
-	return %c;
-}
+
 //Stolen from firerelaynum as this is the best and strongest solution
 function SimObject::VCE_ProcessVCERange(%obj, %start, %end, %inputEvent, %client)
 {
 	// Only check for those events we are interested in
-	if (%start $= "" || %end $= "")
-		return "";
+	if (%start < 0 || %end > %obj.numevents || %start > %end){
+		%start = 0;
+		%end = %obj.numevents;
+	}
 	for (%i = %start; %i <= %end; %i++)
 	{
 		
