@@ -5,44 +5,69 @@
 //	@auther Monoblaster/46426
 //	@time 5:30 PM 16/04/2011
 //---
-//ARGS are not implented for this yet I HAVE NO IDEA IF I NEED THEM
-function VariableGroup::HookFunctionToEventFunction(%varGroup,%functionClass,%function,%functionArgs,%localFunctionName,%args)
+$VCEisEventParameterType["int"] = 1;
+$VCEisEventParameterType["float"] = 1;
+$VCEisEventParameterType["list"] = 1;
+$VCEisEventParameterType["bool"] = 1;
+$VCEisEventParameterType["intList"] = 1;
+$VCEisEventParameterType["datablock"] = 1;
+$VCEisEventParameterType["string"] = 1;
+$VCEisEventParameterType["vector"] = 1;
+$VCEisEventParameterType["paintColor"] = 1;
+//MIM between proccessing and actual event calling
+function SimObject::VCECallEvent(%obj, %outputEvent, %brick, %client, %passClient, %par1, %par2, %par3, %par4)
 {
-	if(%functionClass !$= "")
+	talk(%client.player SPC %outputevent);
+	%classname = %obj.getClassName();
+
+	%parameterWords = verifyOutputParameterList(%classname, outputEvent_GetOutputEventIdx(%classname, %outputEvent));
+	%parameterWordCount = getWordCount(%parameterWords);
+	
+	%c = 1;
+	//filter all string parameters
+	for(%i = 0; %i < %parameterWordCount; %i++)
 	{
-		if(!isFunction(%functionClass,%function))
-			return;
-		%functionArgs = "%obj," @ %functionArgs;
+		%word = getWord(%parameterWords, %i);
+		
+		if(%word $= "string")
+			%par[%c] = %brick.filterVCEString(%par[%c],%client);
+
+		if($VCEisEventParameterType[%word])
+			%c++;
+
+	}
+
+	%parCount = outputEvent_GetNumParametersFromIdx(%classname, outputEvent_GetOutputEventIdx(%classname, %outputEvent));
+
+	//call the event correctly with the right number of paramter
+	//for some reason some events have error detection for the wrong number of paramters
+	//we could use eval but i'd rather not be compiling code during runtime
+
+	if(%passClient)
+	{
+		if(%parCount == 0)
+			%obj.call(%outputEvent,%client);
+		if(%parCount == 1)
+			%obj.call(%outputEvent,%par1,%client);
+		if(%parCount == 2)
+			%obj.call(%outputEvent,%par1,%par2,%client);
+		if(%parCount == 3)
+			%obj.call(%outputEvent,%par1,%par2,%par3,%client);
+		if(%parCount == 4)
+			%obj.call(%outputEvent,%par1,%par2,%par3,%par4,%client);	
 	}
 	else
 	{
-		if(!isFunction(%function))
-			return;
-	}
-	
-	eval("package VCE_HookEventFunctions {function "@ %functionClass @"::"@ %function @"("@ %functionArgs @"){"@ %varGroup @".CallLocalFunction(\""@ %localFunctionName @"\");Parent::"@ %function @"("@ %functionArgs @");}};");
-}
-
-function activateEventFunctionHooks()
-{
-	activatePackage(VCE_HookEventFunctions);
-}
-function VariableGroup::CallLocalFunction(%varGroup,%functionName)
-{
-	%count = %vargroup.vceLocalFunctionCount[%functionName];
-	for(%i = 1; %i <= %count; %i++)
-	{
-
-		%sentence = %vargroup.vceLocalFunction[%functionName,%i];
-		
-		%localbrick = getWord(%sentence,0);
-		%subStart = getWord(%sentence,1);
-		%subEnd = getWord(%sentence,0);
-
-		if(!isObject(%localbrick))
-			continue;
-
-		%localbrick.VCE_ProcessVCERange(%subStart, %subEnd, "onVariableFunction", %vargroup.client);
+		if(%parCount == 0)
+			%obj.call(%outputEvent);
+		if(%parCount == 1)
+			%obj.call(%outputEvent,%par1);
+		if(%parCount == 2)
+			%obj.call(%outputEvent,%par1,%par2);
+		if(%parCount == 3)
+			%obj.call(%outputEvent,%par1,%par2,%par3);
+		if(%parCount == 4)
+			%obj.call(%outputEvent,%par1,%par2,%par3,%par4);	
 	}
 }
 package VCE_Main
@@ -58,65 +83,6 @@ package VCE_Main
 		VCE_createVariableGroup(%brick);
 		
 		return Parent::onLoadPlant(%brick);
-	}
-	function gameConnection::ChatMessage(%client,%msg,%client,%brick)
-	{
-		%obj = %brick;
-		if(isObject(%obj))
-			return Parent::ChatMessage(%client,%obj.filterVCEString(%msg,%client));
-		return Parent::ChatMessage(%client,%msg);
-	}
-	function gameConnection::CenterPrint(%client,%msg,%time,%client,%brick)
-	{
-		%obj = %brick;
-		if(isObject(%obj))	
-			return Parent::CenterPrint(%client,%obj.filterVCEString(%msg,%client), %time);
-		return Parent::CenterPrint(%client,%msg,%time);
-	}
-	function gameConnection::BottomPrint(%client,%msg,%time,%hideBar,%client,%brick)
-	{
-		%obj = %brick;
-		if(isObject(%obj))
-			return Parent::BottomPrint(%client,%obj.filterVCEString(%msg,%client), %time, %hideBar);
-		return Parent::BottomPrint(%client,%msg,%time, %hideBar);
-	}
-	function miniGameSO::BottomPrintAll(%mini,%msg,%time,%client,%brick)
-	{
-		if(isObject(%client))
-			%msg = strReplace(%msg,"%1",%client.getPlayerName());
-		%obj = %brick;
-		if(isObject(%obj)){
-			for(%i=0;%i<%mini.numMembers;%i++)
-				Parent::BottomPrint(%mini.getObject(%i),%obj.filterVCEString(%msg,%mini.getObject(%i)), %time, 0);
-		} else{
-			for(%i=0;%i<%mini.numMembers;%i++)
-				Parent::BottomPrint(%mini.getObject(%i),%msg,%time, 0);
-		}
-	}
-	function miniGameSO::CenterPrintAll(%mini,%msg,%time,%client,%brick)
-	{
-		if(isObject(%client))
-			%msg = strReplace(%msg,"%1",%client.getPlayerName());
-		%obj = %brick;
-		if(isObject(%obj)){
-			for(%i=0;%i<%mini.numMembers;%i++)
-				Parent::CenterPrint(%mini.getObject(%i),%obj.filterVCEString(%msg,%mini.getObject(%i)), %time);
-		} else{
-			for(%i=0;%i<%mini.numMembers;%i++)
-				Parent::CenterPrint(%client,%msg,%time);
-		}
-	}
-	function miniGameSO::ChatMsgAll(%mini,%msg,%client,%brick)
-	{
-		%obj = %brick;
-		%obj = 0;
-		if(isObject(%obj)){
-			for(%i=0;%i<%mini.numMembers;%i++)
-				Parent::ChatMessage(%mini.getObject(%i),%obj.filterVCEString(%msg,%mini.getObject(%i)));
-		} else{
-			for(%i=0;%i<%mini.numMembers;%i++)
-				Parent::ChatMessage(%mini.getObject(%i),%msg);
-		}
 	}
 	function servercmdMessageSent(%client,%message)
 	{
@@ -172,6 +138,7 @@ package VCE_Main
 		%bot.hIsEnabled = false;
 		Parent::stopHoleLoop(%bot);
 	}
+
 	//Repackaging this function to include a brick when giving this to specific output events
 	function SimObject::processInputEvent(%obj, %EventName, %client)
 	{
@@ -412,79 +379,37 @@ package VCE_Main
 								{
 									%targetClass = "fxDTSBrick";
 									%numParameters = outputEvent_GetNumParametersFromIdx(%targetClass, %outputEventIdx);
-									if (%obj.eventOutputAppendClient[%i])
+									if (%numParameters == 0.0)
 									{
-										if (%numParameters == 0.0)
-										{
-											%scheduleID = %target.schedule(%delay, %outputEvent, %client, %obj);
-										}
-										else
-										{
-											if (%numParameters == 1.0)
-											{
-												%scheduleID = %target.schedule(%delay, %outputEvent, %par1, %client, %obj);
-											}
-											else
-											{
-												if (%numParameters == 2.0)
-												{
-													%scheduleID = %target.schedule(%delay, %outputEvent, %par1, %par2, %client, %obj);
-												}
-												else
-												{
-													if (%numParameters == 3.0)
-													{
-														%scheduleID = %target.schedule(%delay, %outputEvent, %par1, %par2, %par3, %client, %obj);
-													}
-													else
-													{
-														if (%numParameters == 4.0)
-														{
-															%scheduleID = %target.schedule(%delay, %outputEvent, %par1, %par2, %par3, %par4, %client, %obj);
-														}
-														else
-														{
-															error("ERROR: SimObject::ProcessInputEvent() - bad number of parameters on event \'" @ %outputEvent @ "\' (" @ numParameters @ ")");
-														}
-													}
-												}
-											}
-										}
+										%scheduleID = %target.schedule(%delay,"VCECallEvent", %outputEvent, %obj, %client, %obj.eventOutputAppendClient[%i]);
 									}
 									else
 									{
-										if (%numParameters == 0.0)
+										if (%numParameters == 1.0)
 										{
-											%scheduleID = %target.schedule(%delay, %outputEvent);
+											%scheduleID = %target.schedule(%delay,"VCECallEvent", %outputEvent, %obj, %client, %obj.eventOutputAppendClient[%i], %par1);
 										}
 										else
 										{
-											if (%numParameters == 1.0)
+											if (%numParameters == 2.0)
 											{
-												%scheduleID = %target.schedule(%delay, %outputEvent, %par1);
+												%scheduleID = %target.schedule(%delay,"VCECallEvent", %outputEvent, %obj, %client, %obj.eventOutputAppendClient[%i], %par1, %par2);
 											}
 											else
 											{
-												if (%numParameters == 2.0)
+												if (%numParameters == 3.0)
 												{
-													%scheduleID = %target.schedule(%delay, %outputEvent, %par1, %par2);
+													%scheduleID = %target.schedule(%delay,"VCECallEvent", %outputEvent, %obj, %client, %obj.eventOutputAppendClient[%i], %par1, %par2, %par3);
 												}
 												else
 												{
-													if (%numParameters == 3.0)
+													if (%numParameters == 4.0)
 													{
-														%scheduleID = %target.schedule(%delay, %outputEvent, %par1, %par2, %par3);
+														%scheduleID = %target.schedule(%delay,"VCECallEvent", %outputEvent, %obj, %client, %obj.eventOutputAppendClient[%i], %par1, %par2, %par3, %par4);
 													}
 													else
 													{
-														if (%numParameters == 4.0)
-														{
-															%scheduleID = %target.schedule(%delay, %outputEvent, %par1, %par2, %par3, %par4);
-														}
-														else
-														{
-															error("ERROR: SimObject::ProcessInputEvent() - bad number of parameters on event \'" @ %outputEvent @ "\' (" @ numParameters @ ")");
-														}
+														error("ERROR: SimObject::ProcessInputEvent() - bad number of parameters on event \'" @ %outputEvent @ "\' (" @ numParameters @ ")");
 													}
 												}
 											}
@@ -508,84 +433,43 @@ package VCE_Main
 							{
 								%targetClass = inputEvent_GetTargetClass("fxDTSBrick", %obj.eventInputIdx[%i], %obj.eventTargetIdx[%i]);
 								%numParameters = outputEvent_GetNumParametersFromIdx(%targetClass, %outputEventIdx);
-								if (%obj.eventOutputAppendClient[%i])
+								if (%numParameters == 0.0)
 								{
-									if (%numParameters == 0.0)
-									{
-										%scheduleID = %target.schedule(%delay, %outputEvent, %client,%obj);
-									}
-									else
-									{
-										if (%numParameters == 1.0)
-										{
-											%scheduleID = %target.schedule(%delay, %outputEvent, %par1, %client,%obj);
-										}
-										else
-										{
-											if (%numParameters == 2.0)
-											{
-												%scheduleID = %target.schedule(%delay, %outputEvent, %par1, %par2, %client,%obj);
-											}
-											else
-											{
-												if (%numParameters == 3.0)
-												{
-													%scheduleID = %target.schedule(%delay, %outputEvent, %par1, %par2, %par3, %client,%obj);
-												}
-												else
-												{
-													if (%numParameters == 4.0)
-													{
-														%scheduleID = %target.schedule(%delay, %outputEvent, %par1, %par2, %par3, %par4, %client,%obj);
-													}
-													else
-													{
-														error("ERROR: SimObject::ProcessInputEvent() - bad number of parameters on event \'" @ %outputEvent @ "\' (" @ numParameters @ ")");
-													}
-												}
-											}
-										}
-									}
+									%scheduleID = %target.schedule(%delay,"VCECallEvent", %outputEvent, %obj, %client, %obj.eventOutputAppendClient[%i]);
 								}
 								else
 								{
-									if (%numParameters == 0.0)
+									if (%numParameters == 1.0)
 									{
-										%scheduleID = %target.schedule(%delay, %outputEvent);
+										%scheduleID = %target.schedule(%delay,"VCECallEvent", %outputEvent, %obj, %client, %obj.eventOutputAppendClient[%i], %par1);
 									}
 									else
 									{
-										if (%numParameters == 1.0)
+										if (%numParameters == 2.0)
 										{
-											%scheduleID = %target.schedule(%delay, %outputEvent, %par1);
+											%scheduleID = %target.schedule(%delay,"VCECallEvent", %outputEvent, %obj, %client, %obj.eventOutputAppendClient[%i], %par1, %par2);
 										}
 										else
 										{
-											if (%numParameters == 2.0)
+											if (%numParameters == 3.0)
 											{
-												%scheduleID = %target.schedule(%delay, %outputEvent, %par1, %par2);
+												%scheduleID = %target.schedule(%delay,"VCECallEvent", %outputEvent, %obj, %client, %obj.eventOutputAppendClient[%i], %par1, %par2, %par3);
 											}
 											else
 											{
-												if (%numParameters == 3.0)
+												if (%numParameters == 4.0)
 												{
-													%scheduleID = %target.schedule(%delay, %outputEvent, %par1, %par2, %par3);
+													%scheduleID = %target.schedule(%delay,"VCECallEvent", %outputEvent, %obj, %client, %obj.eventOutputAppendClient[%i], %par1, %par2, %par3, %par4);
 												}
 												else
 												{
-													if (%numParameters == 4.0)
-													{
-														%scheduleID = %target.schedule(%delay, %outputEvent, %par1, %par2, %par3, %par4);
-													}
-													else
-													{
-														error("ERROR: SimObject::ProcessInputEvent() - bad number of parameters on event \'" @ %outputEvent @ "\' (" @ numParameters @ ")");
-													}
+													error("ERROR: SimObject::ProcessInputEvent() - bad number of parameters on event \'" @ %outputEvent @ "\' (" @ numParameters @ ")");
 												}
 											}
 										}
 									}
 								}
+
 								if (%delay > 0.0 && %EventName !$= "onToolBreak")
 								{
 									%obj.addScheduledEvent(%scheduleID);

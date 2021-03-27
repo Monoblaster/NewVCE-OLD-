@@ -247,9 +247,66 @@ function fxDTSBrick::filterVCEString(%brick,%string,%client){
 	return %prev @ %product @ %next;
 }
 
-//for compatibility
+//for compatibility; this is depricated and does nothhing
 function filterVariableString(%string,%brick,%client,%player,%vehicle){
-	return %brick.filterVCEString(%string, %client);
+	return "";
+}
+
+function hookFunctionToVCEEventFunction(%functionClass,%functionName,%functionArgs,%onlyCallIf,%outArgs,%eventFunctionName)
+{
+	if(%outArgs $= "")
+		%outArgs = "\"\"";
+	
+	if(!isObject(%client))
+		%client = %player.client;
+	eval("package VCE_HookEventFunctions {function "@ %functionClass @"::"@ %functionName @"("@ %functionArgs @"){if(\""@ %onlyCallIf @"\")callVCEEventFunction(\""@ %eventFunctionName @"\","@ %outArgs @", %client);Parent::"@ %functionName @"("@ %functionArgs @");}};");
+}
+function activateVCEEventFunctionHooks()
+{
+	activatePackage(VCE_HookEventFunctions);
+}
+//go through brick groups and call the function on a local level
+function callVCEEventFunction (%eventFunctionName, %arg, %client)
+{
+	talk("a");
+	%group = MainBrickGroup;
+	%groupSize = %group.getCount();
+	for(%i = 0; %i < %groupSize; %i++)
+	{
+		%vargroup = %group.getObject(%i).vargroup;
+
+		if(!isObject(%vargroup))
+			continue;
+
+		%localCount = %vargroup.vceLocalFunctionCount[%eventFunctionName];
+		for(%j = 1; %j <= %localCount; %j++)
+		{
+			%sentence =  %vargroup.vceLocalFunction[%eventFunctionName,%j];
+
+			%localBrick = getWord(%sentence,0);				
+
+			if(!isObject(%localBrick))
+				continue;
+			
+			%subStart = getWord(%sentence,1);
+			%subEnd = getWord(%sentence,0);
+			
+			%fc = getWordCount(%arg);
+
+			for(%k=0;%k<%fc;%k++)
+			{
+				%arg[%k] = getWord(%arg,%k);
+				%varGroup.setVariable("arg" @ %k,%arg[%k],%localBrick);
+			}
+
+			%varGroup.setVariable("argcount",%fc,%localBrick);
+
+			if(!isobject(%client))
+				%client = %vargroup.client;
+			
+			%localbrick.VCE_ProcessVCERange(%subStart, %subEnd, "onVariableFunction", %client);
+		}
+	}
 }
 
 function serverCmdSVD(%client,%catagory,%page){

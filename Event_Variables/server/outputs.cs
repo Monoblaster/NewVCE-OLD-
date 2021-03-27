@@ -131,9 +131,8 @@ function SimObject::VCE_modVariable(%obj,%varName,%logic,%value,%client,%brick){
 	if(!(isObject(%client) || isObject(%obj) || isObject(%brick)))
 		return;
 	%className = %obj.getClassName(); 
-	%varName = %brick.filterVCEString(%varName,%client);
 	%oldvalue = %brick.getGroup().vargroup.getVariable(%varName,%obj);
-	%newvalue = %brick.filterVCEString(%value,%client);
+	%newvalue = %value;
 
 	if($VCE::Server::SpecialVarEdit[%className,%varName] !$= ""){
 		if($Pref::VCE::canEditSpecialVars)
@@ -162,7 +161,6 @@ package VCE_modVariable{
 	}
 };
 function SimObject::VCE_ifVariable(%obj,%var,%logic,%valb,%subdata,%client,%brick){
-	%var = %brick.filterVCEString(%var,%client);
 	for(%i = 0; %i < getWordCount(%var); %i++){
 		if((%value = %brick.getGroup().vargroup.getVariable(getWord(%var ,%i), %obj)) !$= ""){
 			%var = setWord(%var, %i, %value);
@@ -176,8 +174,6 @@ function fxDtsBrick::VCE_ifValue(%brick,%vala,%logic,%valb,%subdata,%client)
 		return;
 	if(isObject(%brick.getGroup().vargroup))
 	{
-		%vala = %brick.filterVCEString(%vala,%client);
-		%valb = %brick.filterVCEString(%valb,%client);
 		%test = %brick.doVCEVarFunction(%logic + 52,%vala,%valb,%client);
 
 		%subStart = getWord(%subData,0);
@@ -199,7 +195,6 @@ function fxDtsBrick::VCE_retroCheck(%brick,%vala,%logic,%valb,%subdata,%client)
 	if(isObject(%brick.getGroup().vargroup))
 	{
 		//ifPlayerName 0 ifPlayerID 1 ifAdmin 2 ifPlayerEnergy 3 ifPlayerDamage 4 ifPlayerScore 5 ifLastPlayerMsg 6 ifBrickName 7 ifRandomDice 8
-		%valb = %brick.filterVCEString(%valb,%client);
 		if(%vala == 0)
 			%vala = %client.name;
 		else if(%vala == 1)
@@ -233,10 +228,8 @@ function fxDtsBrick::VCE_stateFunction(%brick,%name,%subdata,%client)
 }
 function fxDTSBrick::VCE_startFunction(%brick,%type,%name,%subData,%client)
 {
-
 	if(!isObject(%varGroup = %brick.getGroup().vargroup))
 		return;
-	%name = %brick.filterVCEString(%name,%client);
 
 	%subStart = getWord(%subData,0);
 	%subEnd = getWord(%subData,1);
@@ -277,10 +270,6 @@ function fxDTSBrick::VCE_callFunction(%obj,%name,%args,%delay,%client,%brick)
 	if(isObject(%obj.getGroup().vargroup))
 	{
 		%varGroup = %obj.getGroup().vargroup;
-		
-		%name = %brick.filterVCEString(%name,%client);
-		%delay = %brick.filterVCEString(%delay,%client);
-		%args = %brick.filterVCEString(%args,%client);
 
 		if(%delay < 0)
 			%delay = 0;
@@ -340,9 +329,6 @@ function fxDTSBrick::VCE_cancelFunction(%brick,%name,%client){
 }
 function fxDtsBrick::VCE_relayCallFunction(%brick,%direction,%name,%args,%delay,%client)
 {
-	%name = %brick.filterVCEString(%name,%client);
-	%args = %brick.filterVCEString(%args,%client);
-	%delay = %brick.filterVCEString(%delay,%client);
 	%WB = %brick.getWorldBox ();
 	%sizeX = (getWord (%WB, 3) - getWord (%WB, 0)) - 0.1;
 	%sizeY = (getWord (%WB, 4) - getWord (%WB, 1)) - 0.1;
@@ -486,12 +472,6 @@ function SimObject::VCE_ProcessVCERange(%obj, %start, %end, %inputEvent, %client
 		for (%n = 1; %n <= %numParams; %n++)
 			%p[%n] = %obj.eventOutputParameter[%i, %n];
 		
-		// Append client
-		if (%obj.eventOutputAppendClient[%i] && isObject(%client))
-		{
-			%p[%n] = %client;
-			%numParams++;
-		}
 
 		%eventDelay = %obj.eventDelay[%i];
 		%eventOutput = %obj.eventOutput[%i];
@@ -504,15 +484,7 @@ function SimObject::VCE_ProcessVCERange(%obj, %start, %end, %inputEvent, %client
 				continue;
 			
 			// Call for event function
-			switch (%numParams)
-			{
-			case 0: %event = %next.schedule(%eventDelay, %eventOutput);
-			case 1: %event = %next.schedule(%eventDelay, %eventOutput, %p1);
-			case 2: %event = %next.schedule(%eventDelay, %eventOutput, %p1, %p2);
-			case 3: %event = %next.schedule(%eventDelay, %eventOutput, %p1, %p2, %p3);
-			case 4: %event = %next.schedule(%eventDelay, %eventOutput, %p1, %p2, %p3, %p4);
-			case 5: %event = %next.schedule(%eventDelay, %eventOutput, %p1, %p2, %p3, %p4, %p5);
-			}
+			%next.schedule(%eventDelay,"VCECallEvent",%eventOutput, %obj, %client, %obj.eventOutputAppendClient[%i], %p1, %p2, %p3, %p4);
 			
 			// To be able to cancel an event
 			if (%delay > 0)
