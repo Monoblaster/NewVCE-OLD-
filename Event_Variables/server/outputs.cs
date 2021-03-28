@@ -238,7 +238,6 @@ function fxDTSBrick::VCE_callFunction(%obj,%name,%args,%delay,%client)
 	}
 }
 function fxDTSBrick::VCE_cancelFunction(%brick,%name,%client){
-	%name = %brick.filterVariableString(%name,%client);
 	%count = %brick.functionScheduleCount[%name];
 	for(%i = 0; %i < %count; %i++)
 	%schedule = %brick.functionSchedule[%i,%name];
@@ -401,7 +400,7 @@ function fxDTSBrick::VCE_ProcessVCERange(%obj, %start, %end, %inputEvent, %clien
 
 			if (!isObject(%next))
 				continue;
-				
+
 			// Call for event function
 			%next.schedule(%eventDelay,"VCECallEvent",%eventOutput, %obj, %client,%client.player,%obj.vehicle,%obj.hbot,getMinigameFromObject(%obj), %obj.eventOutputAppendClient[%i], %p1, %p2, %p3, %p4);
 			

@@ -21,6 +21,7 @@ if(isFile("add-ons/system_returntoblockland/server.cs"))
 	RTB_registerPref("Can Edit Special Variables", "VCE", "$Pref::VCE::canEditSpecialVars", "bool", "Event_Variables", 1, 0, 0);
 	RTB_registerPref("Show Vce Handshake", "VCE", "$Pref::Client::ShowVCEHandshake", "bool", "Event_Variables", 0, 0, 0);
 	RTB_registerPref("Loop Delay", "VCE", "$Pref::VCE::LoopDelay", "int 0 30000", "Event_Variables", 33, 0, 0);
+	RTB_registerPref("Event Functions Admin Only", "VCE", "$Pref::VCE::EventFunctionsAdminOnly", "bool", "Event_Variables", 1, 0, 0);
 }
 
 package VCE_Other

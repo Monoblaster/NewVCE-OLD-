@@ -287,8 +287,7 @@ function callVCEEventFunction (%eventFunctionName, %arg, %client)
 	for(%i = 0; %i < %groupSize; %i++)
 	{
 		%vargroup = %group.getObject(%i).vargroup;
-
-		if(!isObject(%vargroup))
+		if(!isObject(%vargroup) || ($Pref::VCE::EventFunctionsAdminOnly && !%vargroup.client.isAdmin))
 			continue;
 
 		%localCount = %vargroup.vceLocalFunctionCount[%eventFunctionName];
