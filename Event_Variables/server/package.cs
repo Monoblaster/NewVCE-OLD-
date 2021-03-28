@@ -15,9 +15,8 @@ $VCEisEventParameterType["string"] = 1;
 $VCEisEventParameterType["vector"] = 1;
 $VCEisEventParameterType["paintColor"] = 1;
 //MIM between proccessing and actual event calling
-function SimObject::VCECallEvent(%obj, %outputEvent, %brick, %client, %passClient, %par1, %par2, %par3, %par4)
+function SimObject::VCECallEvent(%obj, %outputEvent, %brick, %client,%player,%vehicle,%bot,%minigame, %passClient, %par1, %par2, %par3, %par4)
 {
-	talk(%client.player SPC %outputevent);
 	%classname = %obj.getClassName();
 
 	%parameterWords = verifyOutputParameterList(%classname, outputEvent_GetOutputEventIdx(%classname, %outputEvent));
@@ -30,7 +29,7 @@ function SimObject::VCECallEvent(%obj, %outputEvent, %brick, %client, %passClien
 		%word = getWord(%parameterWords, %i);
 		
 		if(%word $= "string")
-			%par[%c] = %brick.filterVCEString(%par[%c],%client);
+			%par[%c] = %brick.filterVCEString(%par[%c],%client,%player,%vehicle,%bot,%minigame);
 
 		if($VCEisEventParameterType[%word])
 			%c++;
@@ -39,22 +38,150 @@ function SimObject::VCECallEvent(%obj, %outputEvent, %brick, %client, %passClien
 
 	%parCount = outputEvent_GetNumParametersFromIdx(%classname, outputEvent_GetOutputEventIdx(%classname, %outputEvent));
 
-	//call the event correctly with the right number of paramter
-	//for some reason some events have error detection for the wrong number of paramters
-	//we could use eval but i'd rather not be compiling code during runtime
+	%vargroup = %brick.getGroup().vargroup;
 
-	if(%passClient)
+	//there's some special vce functions we want to call within this scope so they have access to needed references
+	if(%outPutEvent $= "VCE_modVariable")
 	{
+		//adding context to parameters
+		if(%obj.getClassName() $= "fxDtsBrick")
+		{
+
+			%type = %par1;
+			%varName = %par2;
+			%logic = %par3;
+			%value = %par4;
+
+			if(!isObject( %obj = VCE_getObjectFromVarType(%type,%brick,%client,%client.player,%brick.vehicle,%brick.hbot,getMinigameFromObject(%brick))))
+				return;
+		}
+		else
+		{
+			%varName = %par1;
+			%logic = %par2;
+			%value = %par3;
+		}
+
+		
+
+		if(!(isObject(%client) || isObject(%obj) || isObject(%brick)))
+			return;
+		
+		%className = %obj.getClassName(); 
+		%oldvalue = %vargroup.getVariable(%varName,%obj);
+		%newvalue = %value;
+
+		if($VCE::Server::SpecialVarEdit[%className,%varName] !$= "")
+		{
+			if($Pref::VCE::canEditSpecialVars)
+				%oldvalue = eval("return" SPC strreplace($VCE::Server::SpecialVar[%className,%varName],"%this",%obj) @ ";");
+			else
+				return;
+		}
+
+		%newValue = doVCEVarFunction(%logic, %oldValue, %newValue);
+		%f = "VCE_" @ $VCE::Server::ObjectToReplacer[%className] @ "_" @ $VCE::Server::SpecialVarEdit[%className,%varName];
+
+		if(isFunction(%f))
+			call(%f,%obj,%newvalue,$VCE::Server::SpecialVarEditArg1[%className,%varName],$VCE::Server::SpecialVarEditArg2[%className,%varName],$VCE::Server::SpecialVarEditArg3[%className,%varName],$VCE::Server::SpecialVarEditArg4[%className,%varName]);
+		else
+			%vargroup.setVariable(%varName,%newValue,%obj);
+
+		%obj.processInputEvent("onVariableUpdate", %client);
+	}
+	else if (%outPutEvent $= "VCE_retroCheck" || %outPutEvent $= "VCE_ifVariable" || %outPutEvent $= "VCE_ifValue")
+	{
+		if(%outPutEvent $= "VCE_retroCheck")
+		{
+			//adding context to parameters
+			%vala = %par1;
+			%logic = %par2;
+			%valb = %par3;
+			%subdata = %par4;
+
+			//ifPlayerName 0 ifPlayerID 1 ifAdmin 2 ifPlayerEnergy 3 ifPlayerDamage 4 ifPlayerScore 5 ifLastPlayerMsg 6 ifBrickName 7 ifRandomDice 8
+			if(%vala == 0)
+				%vala = %client.name;
+			else if(%vala == 1)
+				%vala = %client.BL_ID;
+			else if(%vala == 2){
+				%vala = %client.isAdmin;
+				%valb = %client.isAdmin == 1 ? 1 : -1;
+			} else if(%vala == 3){
+				%vala = 0;
+				if(isObject(%client.player))
+					%vala = %client.player.getEnergyLevel();
+			} else if(%vala == 4){
+				%vala = 0;
+				if(isObject(%client.player))
+					%vala = %client.player.getDamageLevel();
+			} else if(%vala == 5)
+				%vala = %client.score;
+			else if(%vala == 6)
+				%vala = %client.lastMessage;
+			else if(%vala == 7){
+				if(strLen(%brick.getName()) >= 1)
+					%vala = getSubStr(%brick.getName(),1,strLen(%brick.getName()) - 1);
+			} else if(%vala == 8)
+				%vala = getRandom(1,6);
+			
+		}
+		else if(%outPutEvent $= "VCE_ifVariable")
+		{
+			//adding context to parameters
+			%var = %par1;
+			%logic = %par2;
+			%valb = %par3;
+			%subdata = %par4;
+
+			for(%i = 0; %i < getWordCount(%var); %i++){
+				if((%value = %vargroup.getVariable(getWord(%var ,%i), %obj)) !$= ""){
+					%var = setWord(%var, %i, %value);
+				}
+			}
+			%vala = %var;
+		}
+		else
+		{
+			//adding context to parameters
+			%vala = %par1;
+			%logic = %par2;
+			%valb = %par3;
+			%subdata = %par4;
+		}
+
+		if(!isObject(%client))
+			return;
+
+		%test = doVCEVarFunction(%logic + 52,%vala,%valb);
+
+		%subStart = getWord(%subData,0);
+		%subEnd = getWord(%subData,1);
+
+		if(%subStart $= "")
+			%subStart = -1;
+		if(%subEnd $= "")	
+			%subEnd =  -1;
+		if(%test)
+			%brick.VCE_ProcessVCERange(%subStart, %subEnd, "onVariableTrue", %client);
+		else
+			%brick.VCE_ProcessVCERange(%subStart, %subEnd, "onVariableFalse", %client);
+	}
+	else if(%passClient)
+	{
+		//call the event correctly with the right number of paramter
+		//for some reason some events have error detection for the wrong number of paramters
+		//we could use eval but i'd rather not be compiling code during runtime
 		if(%parCount == 0)
-			%obj.call(%outputEvent,%client);
+				%obj.call(%outputEvent,%client);
 		if(%parCount == 1)
-			%obj.call(%outputEvent,%par1,%client);
+				%obj.call(%outputEvent,%par1,%client);
 		if(%parCount == 2)
-			%obj.call(%outputEvent,%par1,%par2,%client);
+				%obj.call(%outputEvent,%par1,%par2,%client);
 		if(%parCount == 3)
-			%obj.call(%outputEvent,%par1,%par2,%par3,%client);
+				%obj.call(%outputEvent,%par1,%par2,%par3,%client);
 		if(%parCount == 4)
-			%obj.call(%outputEvent,%par1,%par2,%par3,%par4,%client);	
+				%obj.call(%outputEvent,%par1,%par2,%par3,%par4,%client);	
 	}
 	else
 	{
@@ -379,41 +506,13 @@ package VCE_Main
 								{
 									%targetClass = "fxDTSBrick";
 									%numParameters = outputEvent_GetNumParametersFromIdx(%targetClass, %outputEventIdx);
-									if (%numParameters == 0.0)
+									if (%numParameters >= 0 && %numParameter <= 4)
 									{
-										%scheduleID = %target.schedule(%delay,"VCECallEvent", %outputEvent, %obj, %client, %obj.eventOutputAppendClient[%i]);
+										%scheduleID = %target.schedule(%delay,"VCECallEvent", %outputEvent, %obj, %client,%client.player,%obj.vehicle,%obj.hbot,getMinigameFromObject(%obj), %obj.eventOutputAppendClient[%i], %par1, %par2, %par3, %par4);
 									}
 									else
 									{
-										if (%numParameters == 1.0)
-										{
-											%scheduleID = %target.schedule(%delay,"VCECallEvent", %outputEvent, %obj, %client, %obj.eventOutputAppendClient[%i], %par1);
-										}
-										else
-										{
-											if (%numParameters == 2.0)
-											{
-												%scheduleID = %target.schedule(%delay,"VCECallEvent", %outputEvent, %obj, %client, %obj.eventOutputAppendClient[%i], %par1, %par2);
-											}
-											else
-											{
-												if (%numParameters == 3.0)
-												{
-													%scheduleID = %target.schedule(%delay,"VCECallEvent", %outputEvent, %obj, %client, %obj.eventOutputAppendClient[%i], %par1, %par2, %par3);
-												}
-												else
-												{
-													if (%numParameters == 4.0)
-													{
-														%scheduleID = %target.schedule(%delay,"VCECallEvent", %outputEvent, %obj, %client, %obj.eventOutputAppendClient[%i], %par1, %par2, %par3, %par4);
-													}
-													else
-													{
-														error("ERROR: SimObject::ProcessInputEvent() - bad number of parameters on event \'" @ %outputEvent @ "\' (" @ numParameters @ ")");
-													}
-												}
-											}
-										}
+										error("ERROR: SimObject::ProcessInputEvent() - bad number of parameters on event \'" @ %outputEvent @ "\' (" @ numParameters @ ")");
 									}
 									if (%delay > 0.0)
 									{
@@ -433,43 +532,15 @@ package VCE_Main
 							{
 								%targetClass = inputEvent_GetTargetClass("fxDTSBrick", %obj.eventInputIdx[%i], %obj.eventTargetIdx[%i]);
 								%numParameters = outputEvent_GetNumParametersFromIdx(%targetClass, %outputEventIdx);
-								if (%numParameters == 0.0)
+								if (%numParameters >= 0 && %numParameter <= 4)
 								{
-									%scheduleID = %target.schedule(%delay,"VCECallEvent", %outputEvent, %obj, %client, %obj.eventOutputAppendClient[%i]);
+									%scheduleID = %target.schedule(%delay,"VCECallEvent", %outputEvent, %obj, %client,%client.player,%obj.vehicle,%obj.hbot,getMinigameFromObject(%obj), %obj.eventOutputAppendClient[%i], %par1, %par2, %par3, %par4);
 								}
 								else
 								{
-									if (%numParameters == 1.0)
-									{
-										%scheduleID = %target.schedule(%delay,"VCECallEvent", %outputEvent, %obj, %client, %obj.eventOutputAppendClient[%i], %par1);
-									}
-									else
-									{
-										if (%numParameters == 2.0)
-										{
-											%scheduleID = %target.schedule(%delay,"VCECallEvent", %outputEvent, %obj, %client, %obj.eventOutputAppendClient[%i], %par1, %par2);
-										}
-										else
-										{
-											if (%numParameters == 3.0)
-											{
-												%scheduleID = %target.schedule(%delay,"VCECallEvent", %outputEvent, %obj, %client, %obj.eventOutputAppendClient[%i], %par1, %par2, %par3);
-											}
-											else
-											{
-												if (%numParameters == 4.0)
-												{
-													%scheduleID = %target.schedule(%delay,"VCECallEvent", %outputEvent, %obj, %client, %obj.eventOutputAppendClient[%i], %par1, %par2, %par3, %par4);
-												}
-												else
-												{
-													error("ERROR: SimObject::ProcessInputEvent() - bad number of parameters on event \'" @ %outputEvent @ "\' (" @ numParameters @ ")");
-												}
-											}
-										}
-									}
+									error("ERROR: SimObject::ProcessInputEvent() - bad number of parameters on event \'" @ %outputEvent @ "\' (" @ numParameters @ ")");
 								}
-
+								
 								if (%delay > 0.0 && %EventName !$= "onToolBreak")
 								{
 									%obj.addScheduledEvent(%scheduleID);

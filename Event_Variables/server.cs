@@ -75,7 +75,8 @@ function VCE_initServer()
 	if(!$VCE::Server)
 	{
 		//event function hooks
-		hookFunctionToVCEEventFunction("Armor","Damage","%data, %player, %sourceObject, %position, %damage, %damageType","(%damage + %player.getDamageLevel()) >= %data.maxDamage","%damageType","onDeath");
+		hookFunctionToVCEEventFunction("GameConnection","onConnectionDropped","%client, %msg","true","","onPlayerLeave");
+		hookFunctionToVCEEventFunction("GameConnection","onDeath","%client, %sourceObject, %sourceClient, %damageType, %damLoc","true","","onPlayerDeath");
 		activateVCEEventFunctionHooks();
 		//special vars
 		registerSpecialVar(GameConnection,"bl_id","%this.bl_id");

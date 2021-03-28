@@ -7,20 +7,20 @@
 //	@time 4:44 PM 14/04/2011
 //---
 
-function VCE_getObjectFromVarType(%id,%brick,%client){
+function VCE_getObjectFromVarType(%id,%brick,%client,%player,%vehicle,%bot,%minigame){
 	//Variable replacer ID
 	if(%id $= "Brick" || %id $= "Br")
 		return %brick;
 	if(%id $= "Player" || %id $= "Pl")
-		return %client.player;
+		return %player;
 	if(%id $= "Client" || %id $= "Cl")
 		return %client;
 	if(%id $= "Minigame" || %id $= "Mg")
-		return getMinigameFromObject(%brick);
+		return %minigame;
 	if(%id $= "Vehicle" || %id $= "Ve")
-		return %brick.vehicle;
+		return %vehicle;
 	if(%id $= "Bot" || %id $= "Bo")
-		return %brick.hBot;
+		return %bot;
 	if(%id $= "Local" || %id $= "Lo")
 		return %brick.getGroup().vargroup;
 
@@ -28,15 +28,15 @@ function VCE_getObjectFromVarType(%id,%brick,%client){
 	if(%id == 0)
 		return %brick;
 	if(%id == 1)
-		return %client.player;
+		return %player;
 	if(%id == 2)
 		return %client;
 	if(%id == 3)
-		return getMinigameFromObject(%brick);
+		return %minigame;
 	if(%id == 4)
-		return %brick.vehicle;
+		return %vehicle;
 	if(%id == 5)
-		return %brick.hBot;
+		return %bot;
 	if(%id == 6)
 		return %brick.getGroup().vargroup;
 }
@@ -127,8 +127,9 @@ function VCE_getReplacerHeaderEnd(%string,%headerStart){
 		return %headerEnd;
 	return -1;
 }
+//DO NOT CALL THIS AS THIS IS DONE AUTOMATICALY NOW
 //recursive getting of all things within <> replaces part of string with result
-function fxDTSBrick::filterVCEString(%brick,%string,%client){
+function fxDTSBrick::filterVCEString(%brick,%string,%client,%player,%vehicle,%bot,%minigame){
 	//looks for the first header
 	%headerStart = -1;
 	while((%headerStart = strPos(%string,"<",%headerStart + 1)) != -1 && (%headerEnd = VCE_getReplacerHeaderEnd(%string,%headerStart)) == -1){}
@@ -148,10 +149,10 @@ function fxDTSBrick::filterVCEString(%brick,%string,%client){
 	//get parts before replacer
 	%prev = getSubStr(%string,0,%headerStart);
 	//get unparsed parts after the replacer
-	%next = %brick.filterVCEString(getSubStr(%string,%replacerEnd + 1,strLen(%string) - %replacerEnd - 1), %client);
+	%next = %brick.filterVCEString(getSubStr(%string,%replacerEnd + 1,strLen(%string) - %replacerEnd - 1), %client,%player,%vehicle,%bot,%minigame);
 	%header = getSubStr(%string,%headerStart,%headerEnd - %headerStart + 1);
 	//everything between header and the end
-	%things = %brick.filterVCEString(getSubStr(%string,%headerEnd + 1, %replacerEnd - %headerEnd - 1), %client);
+	%things = %brick.filterVCEString(getSubStr(%string,%headerEnd + 1, %replacerEnd - %headerEnd - 1), %client,%player,%vehicle,%bot,%minigame);
 	//expression
 	if("<e:" $= %header){
 		//shunting yard algorithm
@@ -205,7 +206,7 @@ function fxDTSBrick::filterVCEString(%brick,%string,%client){
 		for(%i = 2; %i < %outputCount; %i++){
 			//if it's an operator
 			if(getfieldCount(%operator = %output[%i]) > 1){
-				%output[%i] = %brick.doVCEVarFunction(getField(%operator,0), %output[%i - 2],%output[%i - 1],%client);
+				%output[%i] = doVCEVarFunction(getField(%operator,0), %output[%i - 2],%output[%i - 1]);
 				//shift all values between %i - 1 and %last to starting at %i
 				for(%j = %i - 3; %j >= %last; %j--){
 					%output[%j + 2] = %output[%j];
@@ -226,7 +227,7 @@ function fxDTSBrick::filterVCEString(%brick,%string,%client){
 			%mode = "br";
 		}
 		if(isObject(%brick) && isObject(%client)){
-			if(isObject(%obj = VCE_getObjectFromVarType(%mode,%brick,%client))){
+			if(isObject(%obj = VCE_getObjectFromVarType(%mode,%brick,%client,%player,%vehicle,%bot,%minigame))){
 				if($VCE::Server::SpecialVar[%obj.getClassName(),%var] !$= "")
 					%product = eval("return" SPC strReplace($VCE::Server::SpecialVar[%obj.getClassName(),%var],"%this",%obj) @ ";");
 				else
@@ -240,26 +241,29 @@ function fxDTSBrick::filterVCEString(%brick,%string,%client){
 		%mode = getSubStr(%things,0,strPos(%things,":"));
 		%args = strReplace(getSubStr(%things,strPos(%things,":") + 1, 4000),",","\t");
 		if((%func = $VCE::Server::Function[%mode]) !$= "")
-			%product = %brick.doVCEVarFunction(%func, getField(%args,0),getFields(%args,1, getFieldCount(%args) - 1), %client);
+			%product = doVCEVarFunction(%func, getField(%args,0),getFields(%args,1, getFieldCount(%args) - 1));
 	} else{
 		return %prev @ %header @ %things @ ">" @ %next;
 	}
 	return %prev @ %product @ %next;
 }
 
-//for compatibility; this is depricated and does nothhing
+//for compatibility; this is depricated and does nothing
 function filterVariableString(%string,%brick,%client,%player,%vehicle){
-	return "";
+	return %string;
 }
 
 function hookFunctionToVCEEventFunction(%functionClass,%functionName,%functionArgs,%onlyCallIf,%outArgs,%eventFunctionName)
 {
+	if(!isFunction(%functionName) && !isFunction(%functionClass,%functionName))
+		return;
+
 	if(%outArgs $= "")
 		%outArgs = "\"\"";
 	
-	if(!isObject(%client))
-		%client = %player.client;
-	eval("package VCE_HookEventFunctions {function "@ %functionClass @"::"@ %functionName @"("@ %functionArgs @"){if(\""@ %onlyCallIf @"\")callVCEEventFunction(\""@ %eventFunctionName @"\","@ %outArgs @", %client);Parent::"@ %functionName @"("@ %functionArgs @");}};");
+	if(%onlyCallIf $= "")
+		%onlyCallIf = true;
+	eval("package VCE_HookEventFunctions {function "@ %functionClass @"::"@ %functionName @"("@ %functionArgs @"){if(!isObject(%client))%client = %player.client;if("@ %onlyCallIf @")callVCEEventFunction(\""@ %eventFunctionName @"\","@ %outArgs @", %client);Parent::"@ %functionName @"("@ %functionArgs @");}};");
 }
 function activateVCEEventFunctionHooks()
 {
@@ -268,7 +272,6 @@ function activateVCEEventFunctionHooks()
 //go through brick groups and call the function on a local level
 function callVCEEventFunction (%eventFunctionName, %arg, %client)
 {
-	talk("a");
 	%group = MainBrickGroup;
 	%groupSize = %group.getCount();
 	for(%i = 0; %i < %groupSize; %i++)
