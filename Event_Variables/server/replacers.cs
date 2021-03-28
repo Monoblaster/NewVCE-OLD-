@@ -263,6 +263,16 @@ function hookFunctionToVCEEventFunction(%functionClass,%functionName,%functionAr
 	
 	if(%onlyCallIf $= "")
 		%onlyCallIf = true;
+	//set up the dictionary for this
+	if(!$VCE::Server::EventDictionaryCatagoryExists[%functionClass])
+	{
+		$VCE::Server::EventDictionaryCatagory[$VCE::Server::EventDictionaryCatagoryCount++ - 1] = %functionClass;
+		$VCE::Server::EventDictionaryCatagoryExists[%functionClass] = 1;
+	}
+	if(!$VCE::Server::EventDictionaryCatagoryEntryExists[%functionClass,%eventFunctionName]){
+		$VCE::Server::EventDictionaryCatagoryEntry[%functionClass,$VCE::Server::EventDictionaryCatagoryEntryCount[%functionClass]++ - 1] = %eventFunctionName;
+		$VCE::Server::EventDictionaryCatagoryEntryExists[%functionClass,%eventFunctionName] = 1;
+	}
 	eval("package VCE_HookEventFunctions {function "@ %functionClass @"::"@ %functionName @"("@ %functionArgs @"){if(!isObject(%client))%client = %player.client;if("@ %onlyCallIf @")callVCEEventFunction(\""@ %eventFunctionName @"\","@ %outArgs @", %client);Parent::"@ %functionName @"("@ %functionArgs @");}};");
 }
 function activateVCEEventFunctionHooks()
@@ -311,8 +321,36 @@ function callVCEEventFunction (%eventFunctionName, %arg, %client)
 		}
 	}
 }
-
-function serverCmdSVD(%client,%catagory,%page){
+function serverCmdEFD(%client,%catagory,%page)
+{
+	%pageLength = 6;
+	if(%page $= "")
+		%page = 1;
+	%catagoryName = $VCE::Server::EventDictionaryCatagory[%catagory - 1];
+	if(%catagory > 0 && %catagory <= $VCE::Server::EventDictionaryCatagoryCount && %page > 0 && %page <= mCeil($VCE::Server::EventDictionaryCatagoryEntryCount[%catagoryName] / %pageLength)){
+		
+		%client.chatMessage("<font:palatino linotype:20>\c2" @ $VCE::Server::ObjectToReplacer[%catagoryName] SPC "Event Functions:");
+		//display Event
+		
+		%c = (%page - 1) * %pageLength;
+		while((%name = $VCE::Server::EventDictionaryCatagoryEntry[%catagoryName,%c]) !$= "" && %c < (%pageLength * (%page))){
+			%client.chatMessage("<font:palatino linotype:20>\c3" @ %c SPC "\c6|\c4" SPC %name);
+			%c++;
+		}
+		%client.chatMessage("<font:palatino linotype:20>\c2Page" SPC %page SPC "out of" SPC mCeil($VCE::Server::EventDictionaryCatagoryEntryCount[%catagoryName] / %pageLength) SPC ", Input the page you want to go to.");
+	} else{
+		%client.chatMessage("<font:palatino linotype:20>\c2Welcome to the Event Function dictionary, enter this command with the catagory's index to see its repalcers.");
+		//display catagorys
+		%c = 0;
+		while((%name = $VCE::Server::EventDictionaryCatagory[%c]) !$= ""){
+			%client.chatMessage("<font:palatino linotype:20>\c3" @ %c + 1 SPC "\c6|\c4" SPC $VCE::Server::ObjectToReplacer[%name]);
+			%c++;
+		}
+		%client.chatMessage("<font:palatino linotype:20>\c2You may not be able to see the whole list, Page Up and Page Down to browse it.");
+	}
+}
+function serverCmdSVD(%client,%catagory,%page)
+{
 	%pageLength = 6;
 	if(%page $= "")
 		%page = 1;
