@@ -7,7 +7,7 @@
 //Minor: 2
 //Patch: 0
 //Total: 7.20
-$VCE::Server::Version = "7.35";
+$VCE::Server::Version = "7.40";
 //---
 // Support
 //---

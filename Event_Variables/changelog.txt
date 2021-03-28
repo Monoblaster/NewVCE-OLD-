@@ -1,49 +1,55 @@
 <just:center><font:Palatino Linotype:30>Changelog<just:left><font:Palatino Linotype:18>
 Stable: Was tested to be safe and usually approved by RTB file moderators.
 Public Beta: Was either hosted on a public server for people to try out or released by post (not uploaded to the add-ons section as official) to find bugs.
-Private Beta: Was released amongst our beta testers.
+Private Beta: Was Public amongst our beta testers.
 Skipped: This version was skipped from stable release for certain reasons.
-Version 7.35 (Released Beta):
+Version 7.40 (Public Beta):
+   <li> Major refactoring
+   <li> Universal replacer filtering (any string input on an event will be now filtered for vce vars)
+   <li> Event Functions (More info in the manual)
+   <li> Added function scope
+   <li> Numerous bug fixes and probably bug creation
+Version 7.35 (Public Beta):
    <li> Fixed Update Variable
    <li> Fixed Functions
    <li> Migrated all of the other brick references to the new system
-Version 7.34 (Released Beta):
+Version 7.34 (Public Beta):
    <li> Fixed replacer filtering compatibility with other addons
-Version 7.33 (Released Beta):
+Version 7.33 (Public Beta):
    <li> Fixed text messages again because I didn't do it right the first time
-Version 7.32 (Released Beta):
+Version 7.32 (Public Beta):
    <li> Removed the compatibility mode preference and is now forced
    <li> Compatibility with older vce saves actually works now
    <li> All non self target events now work properly 100% of the time
    <li> Fixed special variables not being able to be reference in ifVariable and modVariable
    <li> Text display of VCE variables may be more accurate
-Version 7.31 (Released Beta):
+Version 7.31 (Public Beta):
    <li> Added a compatibility mode preference to allow compatibility with older saves of vce events; this is on by default
    <li> Changed how ranges of input events are called to fix specific edge cases
    <li> Fix ifVariable functions so they actually work now
-Version 7.30 (Released Beta):
+Version 7.30 (Public Beta):
    <li> Added /SVD which will tell you every special varaible on a server
    <li> Fixed the target list extender to include targets that were there orriginaly
    <li> Added Vector Functions
    <li> Added some more variable replacer
-Version 7.20 (Released Beta):
+Version 7.20 (Public Beta):
    <li> Reworked the replacers system and made func and e replacers
    <li> New event VCE_startFunction. An easier to use alternative to stateFunction.
    <li> Added bot support.
    <li> Added local variables.
    <li> Fixed more bugs.
-Version 7.10 (Released Beta):
+Version 7.10 (Public Beta):
    <li> There's a new delay box added to call function events. Box can accept variable replacers.
    <li> New event VCE_cancelFunction: cancels the function of that name on the target brick.
    <li> Fixed game text bugs.
-Version 7.02 (Released Beta):
+Version 7.02 (Public Beta):
    <li> Default and VCE input events have more targets
    <li> Fixed some bugs
    <li> e is now a global variable
-Version 7.01 (Released Beta):
+Version 7.01 (Public Beta):
    <li> Fixed unclean eval line
    <li> Removed eval from other parts of the code
-Version 7.0 (Released Beta):
+Version 7.0 (Public Beta):
    <li> Major code clean up
    <li> Added new functionality to modVariable including new functions and expressions
    <li> Added a couple of new variable replacers
