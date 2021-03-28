@@ -402,7 +402,7 @@ function fxDTSBrick::VCE_ProcessVCERange(%obj, %start, %end, %inputEvent, %clien
 				continue;
 
 			// Call for event function
-			event = %next.schedule(%eventDelay,"VCECallEvent",%eventOutput, %obj, %client,%client.player,%obj.vehicle,%obj.hbot,getMinigameFromObject(%obj), %obj.eventOutputAppendClient[%i], %p1, %p2, %p3, %p4);
+			%event = %next.schedule(%eventDelay,"VCECallEvent",%eventOutput, %obj, %client,%client.player,%obj.vehicle,%obj.hbot,getMinigameFromObject(%obj), %obj.eventOutputAppendClient[%i], %p1, %p2, %p3, %p4);
 			
 			// To be able to cancel an event
 			if (%delay > 0)

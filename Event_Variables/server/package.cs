@@ -554,98 +554,99 @@ package VCE_Main
 	}
 
 };
-if(isFile("Add-Ons/Event_FireRelayNum/server.cs")){
-	package VCE_FireRelayNumFix 
+
+
+package VCE_FireRelayNumFix 
+{
+	function SimObject::ProcessFireRelay(%obj, %process, %client) 
 	{
-		function SimObject::ProcessFireRelay(%obj, %process, %client) 
+			
+		// Onhly check for those events we are interested in
+		%count = getWordCount(%process);
+		for (%j = 0; %j < %count; %j++)
 		{
-				
-			// Onhly check for those events we are interested in
-			%count = getWordCount(%process);
-			for (%j = 0; %j < %count; %j++)
+			%i = getWord(%process, %j);
+			
+			// Already processed
+			if (%tempEvent[%i])
+				continue;
+
+			// Enabled event
+			if (!%obj.eventEnabled[%i])
+				continue;
+			
+			// Not onRelay
+			if (%obj.eventInput[%i] !$= "onRelay")
+				continue;
+			
+			// Target brick(s)
+			if (%obj.eventTargetIdx[%i] == -1)
 			{
-				%i = getWord(%process, %j);
-				
-				// Already processed
-				if (%tempEvent[%i])
-					continue;
-
-				// Enabled event
-				if (!%obj.eventEnabled[%i])
-					continue;
-				
-				// Not onRelay
-				if (%obj.eventInput[%i] !$= "onRelay")
-					continue;
-				
-				// Target brick(s)
-				if (%obj.eventTargetIdx[%i] == -1)
-				{
-					%type = "fxDTSBrick";
-					%group = getBrickGroupFromObject(%obj);
-					%name = %obj.eventNT[%i];
-					for (%objs = 0; %objs < %group.NTObjectCount[%name]; %objs++)
-						%objs[%objs] = %group.NTObject[%name, %objs];
-				}
-				// Self
-				else
-				{
-					%type = inputEvent_GetTargetClass(%obj.getClassName(), %obj.eventInputIdx[%i], %obj.eventTargetIdx[%i]);
-					%objs = 1;
-					// Get object from type (Event_onRelay)
-					switch$ (%type)
-					{
-					case "Bot":
-						%objs0 = %obj.hBot;
-					case "Player":
-						%objs0 = %client.player;
-					case "GameConnection":
-						%objs0 = %client;
-					case "Minigame":
-						%objs0 = getMinigameFromObject(%client);
-					default:
-						%objs0 = %obj;
-					}
-				}
-
-				// Parameters
-				%numParams = outputEvent_GetNumParametersFromIdx(%type, %obj.eventOutputIdx[%i]);
-				
-				// Get parameters
-				%param = "";
-				for (%n = 1; %n <= %numParams; %n++)
-					%p[%n] = %obj.eventOutputParameter[%i, %n];
-				
-				// Append client
-				if (%obj.eventOutputAppendClient[%i] && isObject(%client))
-				{
-					%p[%n] = %client;
-					%numParams++;
-				}
-
-				%eventDelay = %obj.eventDelay[%i];
-				%eventOutput = %obj.eventOutput[%i];
-				
-				// Go through list/brick
-				for (%n = 0; %n < %objs; %n++)
-				{
-					%next = %objs[%n];
-
-					if (!isObject(%next))
-						continue;
-					
-					// Call for event function
-						%event = %next.schedule(%eventDelay,"VCECallEvent",%eventOutput, %obj, %client,%client.player,%obj.vehicle,%obj.hbot,getMinigameFromObject(%obj), %obj.eventOutputAppendClient[%i], %p1, %p2, %p3, %p4);
-					
-					// To be able to cancel an event
-					if (%delay > 0)
-						%obj.addScheduledEvent(%event);
-				}
-
-				// Mark as processed
-				%tempEvent[%i] = 1;
+				%type = "fxDTSBrick";
+				%group = getBrickGroupFromObject(%obj);
+				%name = %obj.eventNT[%i];
+				for (%objs = 0; %objs < %group.NTObjectCount[%name]; %objs++)
+					%objs[%objs] = %group.NTObject[%name, %objs];
 			}
-			return "";
+			// Self
+			else
+			{
+				%type = inputEvent_GetTargetClass(%obj.getClassName(), %obj.eventInputIdx[%i], %obj.eventTargetIdx[%i]);
+				%objs = 1;
+				// Get object from type (Event_onRelay)
+				switch$ (%type)
+				{
+				case "Bot":
+					%objs0 = %obj.hBot;
+				case "Player":
+					%objs0 = %client.player;
+				case "GameConnection":
+					%objs0 = %client;
+				case "Minigame":
+					%objs0 = getMinigameFromObject(%client);
+				default:
+					%objs0 = %obj;
+				}
+			}
+
+			// Parameters
+			%numParams = outputEvent_GetNumParametersFromIdx(%type, %obj.eventOutputIdx[%i]);
+			
+			// Get parameters
+			%param = "";
+			for (%n = 1; %n <= %numParams; %n++)
+				%p[%n] = %obj.eventOutputParameter[%i, %n];
+			
+			// Append client
+			if (%obj.eventOutputAppendClient[%i] && isObject(%client))
+			{
+				%p[%n] = %client;
+				%numParams++;
+			}
+
+			%eventDelay = %obj.eventDelay[%i];
+			%eventOutput = %obj.eventOutput[%i];
+			
+			// Go through list/brick
+			for (%n = 0; %n < %objs; %n++)
+			{
+				%next = %objs[%n];
+
+				if (!isObject(%next))
+					continue;
+				
+				// Call for event function
+					%event = %next.schedule(%eventDelay,"VCECallEvent",%eventOutput, %obj, %client,%client.player,%obj.vehicle,%obj.hbot,getMinigameFromObject(%obj), %obj.eventOutputAppendClient[%i], %p1, %p2, %p3, %p4);
+				
+				// To be able to cancel an event
+				if (%delay > 0)
+					%obj.addScheduledEvent(%event);
+			}
+
+			// Mark as processed
+			%tempEvent[%i] = 1;
 		}
-	};
-}
+		return "";
+	}
+};
+
