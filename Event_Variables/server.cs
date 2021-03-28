@@ -40,8 +40,8 @@ function VCE_initServer()
 {
 	deactivatePackage(VCE_Main);
 	activatePackage(VCE_Main);
-	deactivatePackage(VCE_modVariable);
-	activatePackage(VCE_modVariable);
+	deactivatePackage(VCE_FireRelayNumFix);
+	activatePackage(VCE_FireRelayNumFix);
 	//extends the targets of all listed items
 	extendTargetList();
 	//list of operators
