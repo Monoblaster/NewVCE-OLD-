@@ -18,7 +18,7 @@ function doVCEVarFunction(%function, %oldValue, %newValue){
 		return %oldvalue * getField(%newvalue, 0);
 	if(%function == 4)
 		return %oldvalue / getField(%newvalue, 0);
-	if(%function == 15)
+	if(%function == 16)
 		return %oldvalue % getField(%newvalue, 0);
 	if(%function == 7)
 		return mPow(%oldValue, getField(%newvalue, 0));
