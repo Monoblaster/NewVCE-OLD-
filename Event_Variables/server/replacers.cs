@@ -58,6 +58,13 @@ $VCE::Server::TargetToObject["Vehicle"] = "Vehicle";
 $VCE::Server::TargetToObject["Bot"] = "AIPlayer";
 $VCE::Server::TargetToObject["AIPlayer"] = "AIPlayer";
 $VCE::Server::TargetToObject["Minigame"] = "Minigame";
+//Index to Object Classes
+$VCE::Server::TargetToObject[0] = "fxDTSBrick";
+$VCE::Server::TargetToObject[1] = "Player";
+$VCE::Server::TargetToObject[2] = "GameConnection";
+$VCE::Server::TargetToObject[3] = "Minigame";
+$VCE::Server::TargetToObject[4] = "Vehicle";
+$VCE::Server::TargetToObject[5] = "AIPlayer";
 
 //acts like advanced vce's expression but not as an event we skip 0 because 0 is just a set function
 $VCE::Server::Operator["+"] = 1 TAB 11;
@@ -238,10 +245,7 @@ function fxDTSBrick::filterVCEString(%brick,%string,%client,%player,%vehicle,%bo
 		}
 		if(isObject(%brick) && isObject(%client)){
 			if(isObject(%obj = VCE_getObjectFromVarType(%mode,%brick,%client,%player,%vehicle,%bot,%minigame))){
-				if($VCE::Server::SpecialVar[%obj.getClassName(),%var] !$= "")
-					%product = eval("return" SPC strReplace($VCE::Server::SpecialVar[%obj.getClassName(),%var],"%this",%obj) @ ";");
-				else
-					%product = %brick.getGroup().varGroup.getVariable(%var, %obj);
+				%product = %brick.getGroup().varGroup.getVariable(%var, %obj);
 			}
 		}
 		%brick = %ogBrick;

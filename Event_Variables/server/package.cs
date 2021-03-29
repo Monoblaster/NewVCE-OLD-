@@ -17,7 +17,10 @@ $VCEisEventParameterType["paintColor"] = 1;
 //MIM between proccessing and actual event calling
 function SimObject::VCECallEvent(%obj, %outputEvent, %brick, %client,%player,%vehicle,%bot,%minigame, %passClient,%targetClass, %par1, %par2, %par3, %par4)
 {
-	%classname = $VCE::Server::TargetToObject[%targetClass];
+	%classname = %obj.getClassName();
+
+	if(%classname $= "ScriptObject" && %obj.class !$= "Vargroup")
+		%classname = "Minigame";
 
 	%parameterWords = verifyOutputParameterList(%classname, outputEvent_GetOutputEventIdx(%classname, %outputEvent));
 	%parameterWordCount = getWordCount(%parameterWords);
@@ -53,6 +56,13 @@ function SimObject::VCECallEvent(%obj, %outputEvent, %brick, %client,%player,%ve
 		if(%obj.getClassName() $= "fxDtsBrick")
 		{
 			%obj = VCE_getObjectFromVarType(%par1,%brick,%client,%player,%vehicle,%bot,%minigame);
+
+			%classname = %obj.getClassName();
+
+			if(%classname $= "ScriptObject" && %obj.class !$= "Vargroup")
+				%classname = "MinigameSO";
+
+
 			%varName = %par2;
 			%logic = %par3;
 			%value = %par4;
@@ -67,10 +77,7 @@ function SimObject::VCECallEvent(%obj, %outputEvent, %brick, %client,%player,%ve
 			
 		}	
 
-		if(!(isObject(%client) || isObject(%obj) || isObject(%brick)))
-			return;
-
-		%className = %obj.getClassName();
+		
 
 		%oldvalue = %vargroup.getVariable(%varName,%obj);
 
