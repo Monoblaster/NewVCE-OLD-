@@ -44,7 +44,7 @@ function VCE_createVariableGroup(%brick)
 function VariableGroup::setVariable(%group,%varName,%value,%obj)
 {
 	%className = %obj.getClassName();
-	if(!isObject(%group) || $VCE::Server::SpecialVar[%className,%varName] !$= "")
+	if(!isObject(%group) || isSpecialVar(%classname,%varName))
 		return;
 	%group.value[%className,%obj,%varName] = %value;
 }
@@ -53,14 +53,18 @@ function VariableGroup::getVariable(%group,%varName,%obj)
 	%className = %obj.getClassName();
 	%val = 0;
 
-	if($VCE::Server::SpecialVar[%className,%varName] !$= "")
-		%val = eval("return" SPC strReplace($VCE::Server::SpecialVar[%className,%obj,%varName],"%this",%obj) @ ";");
+	if(isSpecialVar(%classname,%varName))
+		%val = eval("return" SPC strReplace($VCE::Server::SpecialVar[%className,%varName],"%this",%obj) @ ";");
 	else
 		%val = %group.value[%className,%obj,%varName];
-		
+	
 	if(%val $= "")
 		%val = 0;
 	return %val;
+}
+function isSpecialVar(%classname,%name)
+{
+	return $VCE::Server::SpecialVar[%classname,%name] !$= "";
 }
 function VariableGroup::saveVariable(%group,%varName,%obj)
 {
@@ -69,7 +73,7 @@ function VariableGroup::saveVariable(%group,%varName,%obj)
 	
 	%className = %obj.getClassName();
 
-	if($VCE::Server::SpecialVar[%className,%varName] !$= "")
+	if(isSpecialVar(%classname,%varName))
 		return;
 
 	if((%value = %group.getVariable(%varName,%obj)) $= "")
@@ -111,7 +115,7 @@ function VariableGroup::loadVariable(%group,%varName,%obj)
 	
 	%className = %obj.getClassName();
 
-	if($VCE::Server::SpecialVar[%className,%varName] !$= "")
+	if(isSpecialVar(%classname,%varName))
 		return;
 
 	if(%classname $= "Player"){

@@ -396,10 +396,6 @@ function registerSpecialVar(%classname,%name,%script,%editscript,%arg1,%arg2,%ar
 	$VCE::Server::SpecialVarEditArg3[%classname,%name] = %arg3;
 	$VCE::Server::SpecialVarEditArg4[%classname,%name] = %arg4;
 }
-function isSpecialVar(%classname,%name)
-{
-	return $VCE::Server::SpecialVar[%classname,%name] !$= "";
-}
 function unregisterSpecialVar(%classname,%name)
 {
 	if($VCE::Server::SpecialVar[%classname,%name] $= "")
