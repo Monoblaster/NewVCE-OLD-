@@ -52,6 +52,7 @@ $VCE::Server::ObjectToReplacer["Global"] = "Global";
 $VCE::Server::TargetToObject["Client"] = "GameConnection";
 $VCE::Server::TargetToObject["Player"] = "Player";
 $VCE::Server::TargetToObject["fxDTSBrick"] = "fxDTSBrick";
+$VCE::Server::TargetToObject["Self"] = "fxDTSBrick";
 $VCE::Server::TargetToObject["Vehicle"] = "Vehicle";
 $VCE::Server::TargetToObject["Bot"] = "AIPlayer";
 $VCE::Server::TargetToObject["Minigame"] = "Minigame";

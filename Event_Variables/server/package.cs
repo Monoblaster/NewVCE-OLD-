@@ -19,6 +19,8 @@ function SimObject::VCECallEvent(%obj, %outputEvent, %brick, %client,%player,%ve
 {
 	%classname = $VCE::Server::TargetToObject[%targetClass];
 
+	talk(%classname SPC %targetClass);
+
 	%parameterWords = verifyOutputParameterList(%classname, outputEvent_GetOutputEventIdx(%classname, %outputEvent));
 	%parameterWordCount = getWordCount(%parameterWords);
 	%c = 1;
@@ -616,7 +618,6 @@ package VCE_FireRelayNumFix
 				%p[%n] = %client;
 				%numParams++;
 			}
-
 			%eventDelay = %obj.eventDelay[%i];
 			%eventOutput = %obj.eventOutput[%i];
 			%eventTarget = %obj.eventTarget[%i];
