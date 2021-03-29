@@ -44,9 +44,24 @@ function VCE_createVariableGroup(%brick)
 function VariableGroup::setVariable(%group,%varName,%value,%obj)
 {
 	%className = %obj.getClassName();
-	if(!isObject(%group) || isSpecialVar(%classname,%varName))
+
+	if(!isObject(%group))
 		return;
-	%group.value[%className,%obj,%varName] = %value;
+	
+	if(isSpecialVar(%classname,%varName))
+	{
+		if($Pref::VCE::canEditSpecialVars)
+		{
+			%f = "VCE_" @ $VCE::Server::ObjectToReplacer[%className] @ "_" @ $VCE::Server::SpecialVarEdit[%className,%varName];
+			if(isFunction(%f))
+				call(%f,%obj,%value,$VCE::Server::SpecialVarEditArg1[%className,%varName],$VCE::Server::SpecialVarEditArg2[%className,%varName],$VCE::Server::SpecialVarEditArg3[%className,%varName],$VCE::Server::SpecialVarEditArg4[%className,%varName]);
+		}
+			
+	}
+	else
+	{
+		%group.value[%className,%obj,%varName] = %value;
+	}
 }
 function VariableGroup::getVariable(%group,%varName,%obj)
 {

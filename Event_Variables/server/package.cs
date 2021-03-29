@@ -31,12 +31,13 @@ function SimObject::VCECallEvent(%obj, %outputEvent, %brick, %client,%player,%ve
 			%par[%c] = %brick.filterVCEString(%par[%c],%client,%player,%vehicle,%bot,%minigame);
 
 		if($VCEisEventParameterType[%word])
+		{
 			%c++;
+		}	
 
 	}
 
-	%parCount = outputEvent_GetNumParametersFromIdx(%classname, outputEvent_GetOutputEventIdx(%classname, %outputEvent));
-
+	%parCount = %c - 1;
 	%vargroup = %brick.getGroup().vargroup;
 
 	//there's some special vce functions we want to call within this scope so they have access to needed references
@@ -66,23 +67,12 @@ function SimObject::VCECallEvent(%obj, %outputEvent, %brick, %client,%player,%ve
 		
 		%className = %obj.getClassName(); 
 		%oldvalue = %vargroup.getVariable(%varName,%obj);
+
 		%newvalue = %value;
 
-		if($VCE::Server::SpecialVarEdit[%className,%varName] !$= "")
-		{
-			if($Pref::VCE::canEditSpecialVars)
-				%oldvalue = eval("return" SPC strreplace($VCE::Server::SpecialVar[%className,%varName],"%this",%obj) @ ";");
-			else
-				return;
-		}
-
 		%newValue = doVCEVarFunction(%logic, %oldValue, %newValue);
-		%f = "VCE_" @ $VCE::Server::ObjectToReplacer[%className] @ "_" @ $VCE::Server::SpecialVarEdit[%className,%varName];
 
-		if(isFunction(%f))
-			call(%f,%obj,%newvalue,$VCE::Server::SpecialVarEditArg1[%className,%varName],$VCE::Server::SpecialVarEditArg2[%className,%varName],$VCE::Server::SpecialVarEditArg3[%className,%varName],$VCE::Server::SpecialVarEditArg4[%className,%varName]);
-		else
-			%vargroup.setVariable(%varName,%newValue,%obj);
+		%vargroup.setVariable(%varName,%newValue,%obj);
 
 		%obj.processInputEvent("onVariableUpdate", %client);
 	}
