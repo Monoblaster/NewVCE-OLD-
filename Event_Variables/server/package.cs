@@ -21,7 +21,6 @@ function SimObject::VCECallEvent(%obj, %outputEvent, %brick, %client,%player,%ve
 
 	%parameterWords = verifyOutputParameterList(%classname, outputEvent_GetOutputEventIdx(%classname, %outputEvent));
 	%parameterWordCount = getWordCount(%parameterWords);
-	talk(%obj SPC %brick);
 	%c = 1;
 	//filter all string parameters
 	for(%i = 0; %i < %parameterWordCount; %i++)
@@ -51,7 +50,7 @@ function SimObject::VCECallEvent(%obj, %outputEvent, %brick, %client,%player,%ve
 			%varName = %par2;
 			%logic = %par3;
 			%value = %par4;
-			
+
 		}
 		else
 		{
