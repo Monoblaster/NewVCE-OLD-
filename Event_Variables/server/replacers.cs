@@ -50,11 +50,13 @@ $VCE::Server::ObjectToReplacer["MinigameSO"] = "Minigame";
 $VCE::Server::ObjectToReplacer["Global"] = "Global";
 //Event Targets to Object Classes
 $VCE::Server::TargetToObject["Client"] = "GameConnection";
+$VCE::Server::TargetToObject["GameConnection"] = "GameConnection";
 $VCE::Server::TargetToObject["Player"] = "Player";
 $VCE::Server::TargetToObject["fxDTSBrick"] = "fxDTSBrick";
 $VCE::Server::TargetToObject["Self"] = "fxDTSBrick";
 $VCE::Server::TargetToObject["Vehicle"] = "Vehicle";
 $VCE::Server::TargetToObject["Bot"] = "AIPlayer";
+$VCE::Server::TargetToObject["AIPlayer"] = "AIPlayer";
 $VCE::Server::TargetToObject["Minigame"] = "Minigame";
 
 //acts like advanced vce's expression but not as an event we skip 0 because 0 is just a set function
