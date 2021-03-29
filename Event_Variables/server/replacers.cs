@@ -48,6 +48,13 @@ $VCE::Server::ObjectToReplacer["Vehicle"] = "Vehicle";
 $VCE::Server::ObjectToReplacer["AIPlayer"] = "Bot";
 $VCE::Server::ObjectToReplacer["MinigameSO"] = "Minigame";
 $VCE::Server::ObjectToReplacer["Global"] = "Global";
+//Actual objects names to replacer vars
+$VCE::Server::TargetToObject["Client"] = "GameConnection";
+$VCE::Server::TargetToObject["Player"] = "Player";
+$VCE::Server::TargetToObject["fxDTSBrick"] = "fxDTSBrick";
+$VCE::Server::TargetToObject["Vehicle"] = "Vehicle";
+$VCE::Server::TargetToObject["Bot"] = "AIPlayer";
+$VCE::Server::TargetToObject["Minigame"] = "Minigame";
 
 //acts like advanced vce's expression but not as an event we skip 0 because 0 is just a set function
 $VCE::Server::Operator["+"] = 1 TAB 11;

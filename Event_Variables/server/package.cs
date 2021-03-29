@@ -17,7 +17,9 @@ $VCEisEventParameterType["paintColor"] = 1;
 //MIM between proccessing and actual event calling
 function SimObject::VCECallEvent(%obj, %outputEvent, %brick, %client,%player,%vehicle,%bot,%minigame, %passClient,%targetClass, %par1, %par2, %par3, %par4)
 {
-	%classname = %targetClass;
+	%classname = $VCE::Server::TargetToObject[%targetClass];
+
+	talk(%classname SPC %passCLient SPC %par1 SPC %par2 );
 
 	%parameterWords = verifyOutputParameterList(%classname, outputEvent_GetOutputEventIdx(%classname, %outputEvent));
 	%parameterWordCount = getWordCount(%parameterWords);
@@ -619,7 +621,7 @@ package VCE_FireRelayNumFix
 
 			%eventDelay = %obj.eventDelay[%i];
 			%eventOutput = %obj.eventOutput[%i];
-			
+			%eventTarget = %obj.eventTarget[%i];
 			// Go through list/brick
 			for (%n = 0; %n < %objs; %n++)
 			{
@@ -629,7 +631,7 @@ package VCE_FireRelayNumFix
 					continue;
 				
 				// Call for event function
-					%event = %next.schedule(%eventDelay,"VCECallEvent",%eventOutput, %obj, %client,%client.player,%obj.vehicle,%obj.hbot,getMinigameFromObject(%obj), %obj.eventOutputAppendClient[%i], %p1, %p2, %p3, %p4);
+					%event = %next.schedule(%eventDelay,"VCECallEvent",%eventOutput, %obj, %client,%client.player,%obj.vehicle,%obj.hbot,getMinigameFromObject(%obj), %obj.eventOutputAppendClient[%i],%eventTarget, %p1, %p2, %p3, %p4);
 				
 				// To be able to cancel an event
 				if (%delay > 0)
