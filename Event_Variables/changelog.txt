@@ -3,6 +3,9 @@ Stable: Was tested to be safe and usually approved by RTB file moderators.
 Public Beta: Was either hosted on a public server for people to try out or released by post (not uploaded to the add-ons section as official) to find bugs.
 Private Beta: Was Public amongst our beta testers.
 Skipped: This version was skipped from stable release for certain reasons.
+Version 7.41 (Public Beta):
+   <li> Fixing Errors
+   <li> Added compaitibility with FireRelayNum
 Version 7.40 (Public Beta):
    <li> Major refactoring
    <li> Universal replacer filtering (any string input on an event will be now filtered for vce vars)
