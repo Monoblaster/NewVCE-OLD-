@@ -15,12 +15,9 @@ $VCEisEventParameterType["string"] = 1;
 $VCEisEventParameterType["vector"] = 1;
 $VCEisEventParameterType["paintColor"] = 1;
 //MIM between proccessing and actual event calling
-function SimObject::VCECallEvent(%obj, %outputEvent, %brick, %client,%player,%vehicle,%bot,%minigame, %passClient, %par1, %par2, %par3, %par4)
+function SimObject::VCECallEvent(%obj, %outputEvent, %brick, %client,%player,%vehicle,%bot,%minigame, %passClient,%targetClass, %par1, %par2, %par3, %par4)
 {
-	%classname = %obj.getClassName();
-	
-	if (%obj.class $= "MinigameSO")
-		%classname = "Minigame";
+	%classname = %targetClass;
 
 	%parameterWords = verifyOutputParameterList(%classname, outputEvent_GetOutputEventIdx(%classname, %outputEvent));
 	%parameterWordCount = getWordCount(%parameterWords);
@@ -51,11 +48,11 @@ function SimObject::VCECallEvent(%obj, %outputEvent, %brick, %client,%player,%ve
 	//there's some special vce functions we want to call within this scope so they have access to needed references
 	if(%outPutEvent $= "VCE_modVariable")
 	{
+
 		//adding context to parameters
 		if(%obj.getClassName() $= "fxDtsBrick")
 		{
-
-			%type = %par1;
+			%obj = VCE_getObjectFromVarType(%par1,%brick,%client,%player,%vehicle,%bot,%minigame);
 			%varName = %par2;
 			%logic = %par3;
 			%value = %par4;
@@ -66,14 +63,15 @@ function SimObject::VCECallEvent(%obj, %outputEvent, %brick, %client,%player,%ve
 			%varName = %par1;
 			%logic = %par2;
 			%value = %par3;
-		}
 
-		
+			
+		}	
 
 		if(!(isObject(%client) || isObject(%obj) || isObject(%brick)))
 			return;
-		
-		%className = %obj.getClassName(); 
+
+		%className = %obj.getClassName();
+
 		%oldvalue = %vargroup.getVariable(%varName,%obj);
 
 		%newvalue = %value;
@@ -502,7 +500,7 @@ package VCE_Main
 									%numParameters = outputEvent_GetNumParametersFromIdx(%targetClass, %outputEventIdx);
 									if (%numParameters >= 0 && %numParameter <= 4)
 									{
-										%scheduleID = %target.schedule(%delay,"VCECallEvent", %outputEvent, %obj, %client,%client.player,%obj.vehicle,%obj.hbot,getMinigameFromObject(%obj), %obj.eventOutputAppendClient[%i], %par1, %par2, %par3, %par4);
+										%scheduleID = %target.schedule(%delay,"VCECallEvent", %outputEvent, %obj, %client,%client.player,%obj.vehicle,%obj.hbot,getMinigameFromObject(%obj), %obj.eventOutputAppendClient[%i],%targetClass, %par1, %par2, %par3, %par4);
 									}
 									else
 									{
@@ -528,7 +526,7 @@ package VCE_Main
 								%numParameters = outputEvent_GetNumParametersFromIdx(%targetClass, %outputEventIdx);
 								if (%numParameters >= 0 && %numParameter <= 4)
 								{
-									%scheduleID = %target.schedule(%delay,"VCECallEvent", %outputEvent, %obj, %client,%client.player,%obj.vehicle,%obj.hbot,getMinigameFromObject(%obj), %obj.eventOutputAppendClient[%i], %par1, %par2, %par3, %par4);
+									%scheduleID = %target.schedule(%delay,"VCECallEvent", %outputEvent, %obj, %client,%client.player,%obj.vehicle,%obj.hbot,getMinigameFromObject(%obj), %obj.eventOutputAppendClient[%i],%targetClass, %par1, %par2, %par3, %par4);
 								}
 								else
 								{
