@@ -48,7 +48,7 @@ $VCE::Server::ObjectToReplacer["Vehicle"] = "Vehicle";
 $VCE::Server::ObjectToReplacer["AIPlayer"] = "Bot";
 $VCE::Server::ObjectToReplacer["MinigameSO"] = "Minigame";
 $VCE::Server::ObjectToReplacer["Global"] = "Global";
-//Actual objects names to replacer vars
+//Event Targets to Object Classes
 $VCE::Server::TargetToObject["Client"] = "GameConnection";
 $VCE::Server::TargetToObject["Player"] = "Player";
 $VCE::Server::TargetToObject["fxDTSBrick"] = "fxDTSBrick";
