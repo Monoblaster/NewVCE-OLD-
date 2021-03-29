@@ -18,26 +18,34 @@ $VCEisEventParameterType["paintColor"] = 1;
 function SimObject::VCECallEvent(%obj, %outputEvent, %brick, %client,%player,%vehicle,%bot,%minigame, %passClient, %par1, %par2, %par3, %par4)
 {
 	%classname = %obj.getClassName();
+	
+	if (%obj.class $= "MinigameSO")
+		%classname = "Minigame";
 
 	%parameterWords = verifyOutputParameterList(%classname, outputEvent_GetOutputEventIdx(%classname, %outputEvent));
 	%parameterWordCount = getWordCount(%parameterWords);
 	%c = 1;
+
 	//filter all string parameters
 	for(%i = 0; %i < %parameterWordCount; %i++)
 	{
 		%word = getWord(%parameterWords, %i);
+
+		
 		
 		if(%word $= "string")
 			%par[%c] = %brick.filterVCEString(%par[%c],%client,%player,%vehicle,%bot,%minigame);
-
+		
 		if($VCEisEventParameterType[%word])
 		{
+			
 			%c++;
 		}	
 
 	}
 
 	%parCount = %c - 1;
+
 	%vargroup = %brick.getGroup().vargroup;
 
 	//there's some special vce functions we want to call within this scope so they have access to needed references
