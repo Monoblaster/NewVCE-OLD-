@@ -22,7 +22,7 @@ function SimObject::VCECallEvent(%obj, %outputEvent, %brick, %client,%player,%ve
 	%parameterWords = verifyOutputParameterList(%targetClass, outputEvent_GetOutputEventIdx(%targetClass, %outputEvent));
 	%parameterWordCount = getWordCount(%parameterWords);
 	%c = 1;
-	talk(%outputEvent SPC %obj SPC %brick SPC %targetClass SPC %parameterWordCount);
+
 	//filter all string parameters
 	for(%i = 0; %i < %parameterWordCount; %i++)
 	{
@@ -622,10 +622,8 @@ package VCE_FireRelayNumFix
 				if (!isObject(%next))
 					continue;
 
-				%targetClass = inputEvent_GetTargetClass("fxDTSBrick", %obj.eventInputIdx[%i], %obj.eventTargetIdx[%i]);
-
 				// Call for event function
-					%event = %next.schedule(%eventDelay,"VCECallEvent",%eventOutput, %obj, %client,%client.player,%obj.vehicle,%obj.hbot,getMinigameFromObject(%obj), %obj.eventOutputAppendClient[%i],%targetClass, %p1, %p2, %p3, %p4);
+					%event = %next.schedule(%eventDelay,"VCECallEvent",%eventOutput, %obj, %client,%client.player,%obj.vehicle,%obj.hbot,getMinigameFromObject(%obj), %obj.eventOutputAppendClient[%i],%type, %p1, %p2, %p3, %p4);
 				
 				// To be able to cancel an event
 				if (%delay > 0)
