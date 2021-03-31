@@ -46,7 +46,7 @@ function VariableGroup::setVariable(%group,%varName,%value,%obj)
 	%className = %obj.getClassName();
 
 	if(%className $= "ScriptObject" && %obj.class !$= "variablegroup")
-		%className = "MinigameSO"
+		%className = "MinigameSO";
 
 	if(!isObject(%group))
 		return;
@@ -71,7 +71,7 @@ function VariableGroup::getVariable(%group,%varName,%obj)
 	%className = %obj.getClassName();
 
 	if(%className $= "ScriptObject" && %obj.class !$= "variablegroup")
-		%className = "MinigameSO"
+		%className = "MinigameSO";
 
 	%val = 0;
 
