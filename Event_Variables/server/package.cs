@@ -19,10 +19,7 @@ function SimObject::VCECallEvent(%obj, %outputEvent, %brick, %client,%player,%ve
 {
 	%classname = %obj.getClassName();
 
-	if(%classname $= "ScriptObject" && %obj.class !$= "Vargroup")
-		%classname = "Minigame";
-
-	%parameterWords = verifyOutputParameterList(%classname, outputEvent_GetOutputEventIdx(%classname, %outputEvent));
+	%parameterWords = verifyOutputParameterList(%targetClass, outputEvent_GetOutputEventIdx(%targetClass, %outputEvent));
 	%parameterWordCount = getWordCount(%parameterWords);
 	%c = 1;
 
@@ -57,10 +54,6 @@ function SimObject::VCECallEvent(%obj, %outputEvent, %brick, %client,%player,%ve
 			%obj = VCE_getObjectFromVarType(%par1,%obj,%client,%player,%vehicle,%bot,%minigame);
 
 			%classname = %obj.getClassName();
-
-			if(%classname $= "ScriptObject" && %obj.class !$= "Vargroup")
-				%classname = "MinigameSO";
-
 
 			%varName = %par2;
 			%logic = %par3;
@@ -630,9 +623,11 @@ package VCE_FireRelayNumFix
 
 				if (!isObject(%next))
 					continue;
-				
+
+				%targetClass = inputEvent_GetTargetClass("fxDTSBrick", %obj.eventInputIdx[%i], %obj.eventTargetIdx[%i]);
+
 				// Call for event function
-					%event = %next.schedule(%eventDelay,"VCECallEvent",%eventOutput, %obj, %client,%client.player,%obj.vehicle,%obj.hbot,getMinigameFromObject(%obj), %obj.eventOutputAppendClient[%i],%eventTarget, %p1, %p2, %p3, %p4);
+					%event = %next.schedule(%eventDelay,"VCECallEvent",%eventOutput, %obj, %client,%client.player,%obj.vehicle,%obj.hbot,getMinigameFromObject(%obj), %obj.eventOutputAppendClient[%i],%targetClass, %p1, %p2, %p3, %p4);
 				
 				// To be able to cancel an event
 				if (%delay > 0)
