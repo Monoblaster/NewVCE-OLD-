@@ -364,7 +364,7 @@ function fxDTSBrick::VCE_ProcessVCERange(%obj, %start, %end, %inputEvent, %clien
 		// Self
 		else
 		{
-			%type = inputEvent_GetTargetClass(%obj.getClassName(), %obj.eventInputIdx[%i], %obj.eventTargetIdx[%i]);
+			%type = inputEvent_GetTargetClass("fxDTSBrick", %obj.eventInputIdx[%i], %obj.eventTargetIdx[%i]);
 			%objs = 1;
 			// Get object from type (Event_onRelay)
 			switch$ (%type)
