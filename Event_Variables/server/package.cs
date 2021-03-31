@@ -53,8 +53,6 @@ function SimObject::VCECallEvent(%obj, %outputEvent, %brick, %client,%player,%ve
 		{
 			%obj = VCE_getObjectFromVarType(%par1,%obj,%client,%player,%vehicle,%bot,%minigame);
 
-			%classname = %obj.getClassName();
-
 			%varName = %par2;
 			%logic = %par3;
 			%value = %par4;
