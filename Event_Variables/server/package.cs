@@ -19,15 +19,17 @@ function SimObject::VCECallEvent(%obj, %outputEvent, %brick, %client,%player,%ve
 {
 	%classname = %obj.getClassName();
 
+	%targetClass = inputEvent_GetTargetClass("fxDTSBrick", %brick.eventInputIdx[%eventLineNumber], %brick.eventTargetIdx[%eventLineNumber]);
 	//loop through replacing parameter string with the eval string equivilent
 	for(%i = 1; %i <= 4; %i++)
 	{
-		if((%evalString = %brick.VCE_EvalString[%eventLineNumber,%i]) !$= "")
-			%par[%i] = eval(%evalString);
+		if((%referenceString = %brick.VCE_ReferenceString[%eventLineNumber,%i]) $= "")
+			continue;
+			
+		%par[%i] = %brick.doVCEReferenceString(%referenceString);
 	}
 
-	%parCount = %c - 1;
-
+	%parCount = outputEvent_GetNumParametersFromIdx(%targetClass, %brick.eventOutputIdx[%eventLineNumber]);
 	%vargroup = %brick.getGroup().vargroup;
 
 	//there's some special vce functions we want to call within this scope so they have access to needed references
@@ -233,11 +235,18 @@ package VCE_Main
 		%parameterWordCount = getWordCount(%parameterWords);
 		%c = 1;
 		//go thorugh parameters and filter replacers for them to make eval strings for later computaion
-		for(%i = 0; %i < %parameterWordCount; %i++)
+		for(%j = 0; %j < %parameterWordCount; %j++)
 		{
-			%word = getWord(%parameterWords, %i);
+			%word = getWord(%parameterWords, %j);
 			if(%word $= "string"){
-				%brick.VCE_EvalString[%i,%c] = %brick.filterVCEString(%par[%c],%client,%player,%vehicle,%bot,%minigame,true);
+				//spaghetti code because i don't feel like making an initlizing function
+				%brick.VCE_ReplacerFunctionCount = 0;
+				%brick.VCE_ReplacerLiteralCount = 0;
+				//cleansing strings because you can crash by self referencing
+				%par[%c] = strReplace(%par[%c], "VCE_ReplacerFunction", "");
+				%par[%c] = strReplace(%par[%c], "VCE_ReplacerLiteral", "");
+				//filtering and creating a reference string
+				%brick.VCE_ReferenceString[%i,%c] = trim(%brick.filterVCEString(%par[%c],%client,%player,%vehicle,%bot,%minigame));
 			}
 			if($VCEisEventParameterType[%word])
 			{
