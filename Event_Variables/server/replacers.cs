@@ -146,7 +146,7 @@ function VCE_getReplacerHeaderEnd(%string,%headerStart){
 }
 //DO NOT CALL THIS AS THIS IS DONE AUTOMATICALY NOW
 //recursive getting of all things within <> replaces part of string with result
-function fxDTSBrick::filterVCEString(%brick,%string,%client,%player,%vehicle,%bot,%minigame){
+function fxDTSBrick::filterVCEString(%brick,%string,%client,%player,%vehicle,%bot,%minigame,%first){
 	//looks for the first header
 	%headerStart = -1;
 	while((%headerStart = strPos(%string,"<",%headerStart + 1)) != -1 && (%headerEnd = VCE_getReplacerHeaderEnd(%string,%headerStart)) == -1){}
@@ -166,6 +166,7 @@ function fxDTSBrick::filterVCEString(%brick,%string,%client,%player,%vehicle,%bo
 	//get parts before replacer
 	%prev = getSubStr(%string,0,%headerStart);
 	//get unparsed parts after the replacer
+	%nextString = getSubStr(%string,%replacerEnd + 1,strLen(%string) - %replacerEnd - 1);
 	%next = %brick.filterVCEString(getSubStr(%string,%replacerEnd + 1,strLen(%string) - %replacerEnd - 1), %client,%player,%vehicle,%bot,%minigame);
 	%header = getSubStr(%string,%headerStart,%headerEnd - %headerStart + 1);
 	//everything between header and the end
@@ -234,32 +235,49 @@ function fxDTSBrick::filterVCEString(%brick,%string,%client,%player,%vehicle,%bo
 		%product = %output[%outputcount - 1];
 	} else
 	//variable
-	if("<var:" $= %header && strPos(%things,":") > 0){
+	if("<var:" $= %header && strPos(%things,":") > 0)
+	{
 		%ogBrick = %brick;
 		%mode = getSubStr(%things,0,strPos(%things,":"));
 		%var = getSubStr(%things,strPos(%things,":") + 1, 4000);
 		%c = 0;
-		if(striPos(%mode,"nb_") == 0){
-			%brick = %brick.getGroup().NTObject_[getSubStr(%mode,3,strlen(%mode) - 3), 0];
-			%mode = "br";
+		%vargroup = %brick.getGroup().varGroup;
+		if(striPos(%mode,"nb_") == 0)
+		{
+			%product = %vargroup @".getNamedBrickVariable(\""@ %var @"\",\""@getSubStr( %mode ,2, strLen( %mode) - 2 ) @"\")";
 		}
-		if(isObject(%brick) && isObject(%client)){
+		else if(isObject(%brick) && isObject(%client))
+		{
 			if(isObject(%obj = VCE_getObjectFromVarType(%mode,%brick,%client,%player,%vehicle,%bot,%minigame))){
-				%product = %brick.getGroup().varGroup.getVariable(%var, %obj);
+				%product = %vargroup @".getVariable(\""@ %var @"\",\""@ %obj @"\")";
 			}
 		}
 		%brick = %ogBrick;
 	} else
 	//functions
-	if("<func:" $= %header && strPos(%things,":") > 0){
+	if("<func:" $= %header && strPos(%things,":") > 0)
+	{
 		%mode = getSubStr(%things,0,strPos(%things,":"));
 		%args = strReplace(getSubStr(%things,strPos(%things,":") + 1, 4000),",","\t");
 		if((%func = $VCE::Server::Function[%mode]) !$= "")
-			%product = doVCEVarFunction(%func, getField(%args,0),getFields(%args,1, getFieldCount(%args) - 1));
-	} else{
+			%product = "doVCEVarFunction("@ %func @","@ getField(%args,0) @","@ getFields(%args,1, getFieldCount(%args) - 1) @")";
+	} 
+	else
+	{
 		return %prev @ %header @ %things @ ">" @ %next;
 	}
-	return %prev @ %product @ %next;
+	if(%nextString $= %next)
+	{
+		return "\""@ %prev @"\"@" @ %product @ "@\""@ %next @"\"";
+	}
+	else if(%first)
+	{
+		return "\""@ %prev @"\"@"@ %product @ %next;
+	}
+	else
+	{
+		return "@\""@ %prev @"\"@"@ %product @ "@" @ %next;
+	}
 }
 
 //for compatibility; this is depricated and does nothing
