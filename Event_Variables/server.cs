@@ -4,10 +4,10 @@
 //Helpers: Clockturn, Truce, Boom, Lilboarder32, Chrono, and Monoblaster
 //------
 //Major: 7
-//Minor: 4
-//Patch: 3
-//Total: 7.43
-$VCE::Server::Version = "7.43";
+//Minor: 5
+//Patch: 0
+//Total: 7.50
+$VCE::Server::Version = "7.50";
 //---
 // Support
 //---
