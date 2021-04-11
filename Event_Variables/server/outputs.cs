@@ -94,7 +94,7 @@ function doVCEVarFunction(%function, %oldValue, %newValue){
 	if(%function == 41)
 		return vectorCross(%oldValue, %newValue);
 	if(%function == 42)
-		return getBoxCenter(%oldValue);
+		return getBoxCenter(%oldValue SPC %newValue);
 	if(%function == 43)
 		return %oldValue && %newValue;
 	if(%function == 44)
