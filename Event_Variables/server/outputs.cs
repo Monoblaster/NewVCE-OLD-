@@ -8,7 +8,6 @@
 $VCE::Server::ImmuneTime = 5000;
 function doVCEVarFunction(%function, %oldValue, %newValue){
 	%newValue = strReplace(%newValue, ",", "\t");
-	talk(%function SPC %oldValue % %newValue);
 	if(%function == 0)
 		return getSubStr(%newValue,0,32768); //we do nothing as it's done already + substring to prevent overflows
 	if(%function == 1)

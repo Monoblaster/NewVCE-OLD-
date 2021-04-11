@@ -146,17 +146,17 @@ function VCE_getReplacerHeaderEnd(%string,%headerStart){
 }
 function fxDTSBrick::doVCEReferenceString(%brick,%string)
 {
-	%referenceCount = getWordCount(%string);
+	%referenceCount = getFieldCount(%string);
 
 	for(%i = 0; %i < %referenceCount; %i++)
 	{
-		%reference = getWord(%string, %i);
+		%reference = getField(%string, %i);
 		%data = %brick.getField(%reference);
 		//is this a function, literal, or none of the above?
 		if(strPos(%reference,"VCE_ReplacerFunction") == 0)
 		{
 			//is this a object function or a normal function?
-			%obj = getWord(%data,0);
+			%obj = getField(%data,0);
 			if(isObject(%obj))
 			{
 				//scirptobject classes aren't stored in classname
@@ -164,15 +164,15 @@ function fxDTSBrick::doVCEReferenceString(%brick,%string)
 				if(%obj.getClassname() $= "ScriptObject")
 					%className = %obj.class;
 				//is the function real?
-				%function = getWord(%data, 1);
+				%function = getField(%data, 1);
 				if(isFunction(%className,%function))
 				{
 					//is there any references in the parameters?
-					%parameters = %brick.doVCEReferenceString(getWords(%data,2, getWordCount(%data) - 1));
+					%parameters = %brick.doVCEReferenceString(getFields(%data,2, getFieldCount(%data) - 1));
 					
 					//seperate paramters into a list
 					%c = 0;
-					while((%parameter[%c] = getWord(%parameters, %c)) !$= ""){%c++;}
+					while((%parameter[%c] = getField(%parameters, %c)) !$= ""){%c++;}
 
 					//call function and get return
 					%product = %obj.call(%function,%parameter0,%parameter1,%parameter2,%parameter3,%parameter4,%parameter5,%parameter6,%parameter7,%parameter8,%parameter9,%parameter10,%parameter11,%parameter12,%parameter13,%parameter14);
@@ -182,29 +182,29 @@ function fxDTSBrick::doVCEReferenceString(%brick,%string)
 			else
 			{
 				//is the function real?
-				%function = getWord(%data, 0);
+				%function = getField(%data, 0);
 				if(isFunction(%function))
 				{
 					//is there any references in the parameters?
-					%parameters = %brick.doVCEReferenceString(getWords(%data,1, getWordCount(%data)));
+					%parameters = %brick.doVCEReferenceString(getFields(%data,1, getFieldCount(%data)));
 					//seperate paramters into a list
 					%c = 0;
-					while((%parameter[%c] = getWord(%parameters, %c)) !$= ""){%c++;}
+					while((%parameter[%c] = getField(%parameters, %c)) !$= ""){%c++;}
 
 					//call function and get return
 					%product = call(%function,%parameter0,%parameter1,%parameter2,%parameter3,%parameter4,%parameter5,%parameter6,%parameter7,%parameter8,%parameter9,%parameter10,%parameter11,%parameter12,%parameter13,%parameter14);
 				}
 
 			}
-			%string = setWord(%string,%i,%product);
+			%string = setField(%string,%i,%product);
 		}
 		else if(strPos(%reference,"VCE_ReplacerLiteral") == 0)
 		{
 			//a reference to a literal string of some kind
-		    %string = setWord(%string,%i,%data);
+		    %string = setField(%string,%i,fxDTSBrick::doVCEReferenceString(%brick,%data));
 		}
 	}
-	return trim(%string);
+	return %string;
 }
 //DO NOT CALL THIS AS THIS IS DONE AUTOMATICALY NOW
 //recursive getting of all things within <> replaces part of string with result
@@ -243,18 +243,26 @@ function fxDTSBrick::filterVCEString(%brick,%string,%client,%player,%vehicle,%bo
 	}
 	//get parts before replacer
 	%prev = getSubStr(%string,0,%headerStart);
+
+	if(%prev !$= "")
+	{
+		%brick.VCE_ReplacerLiteral[%brick.VCE_ReplacerLiteralCount++] = %prev;
+		%prev = "VCE_ReplacerLiteral" @ %brick.VCE_ReplacerLiteralCount;
+	}
 	//get unparsed parts after the replacer
-	%next = %brick.filterVCEString(getSubStr(%string,%replacerEnd + 1,strLen(%string) - %replacerEnd - 1), %client,%player,%vehicle,%bot,%minigame);
+	%next = getSubStr(%string,%replacerEnd + 1,strLen(%string) - %replacerEnd - 1);
+	%fnext = %brick.filterVCEString(%next, %client,%player,%vehicle,%bot,%minigame);
 	%header = getSubStr(%string,%headerStart,%headerEnd - %headerStart + 1);
 	//everything between header and the end
-	%things = %brick.filterVCEString(getSubStr(%string,%headerEnd + 1, %replacerEnd - %headerEnd - 1), %client,%player,%vehicle,%bot,%minigame);
+	%things = getSubStr(%string,%headerEnd + 1, %replacerEnd - %headerEnd - 1);
+	%fthings = %brick.filterVCEString(%things, %client,%player,%vehicle,%bot,%minigame);
 	//expression
-	if((%thingsFieldjunk = %brick.getField(%things)) !$= "")
-		%things = %thingsFieldjunk;
+	if((%thingsFieldjunk = %brick.getField(%fthings)) !$= "")
+		%fthings = %thingsFieldjunk;
 	if("<e:" $= %header)
 	{	
 		%count = getWordCount(%things);
-		//replace literals with correct stuff
+
 		for(%i = 0; %i < %count; %i++)
 		{
 			%word = getWord(%things, %i);
@@ -294,7 +302,8 @@ function fxDTSBrick::filterVCEString(%brick,%string,%client,%player,%vehicle,%bo
 					%operatorStackCount--;
 				} else{
 					//normal
-					%output[%outputCount] = %word;
+					//we didn't filter this earlier so do it now
+					%output[%outputCount] = %brick.filterVCEString(%word, %client,%player,%vehicle,%bot,%minigame);
 					%outputCount++;
 				}
 				continue;
@@ -320,7 +329,7 @@ function fxDTSBrick::filterVCEString(%brick,%string,%client,%player,%vehicle,%bo
 		for(%i = 2; %i < %outputCount; %i++){
 			//if it's an operator
 			if(getfieldCount(%operator = %output[%i]) > 1){
-				%brick.VCE_ReplacerFunction[%brick.VCE_ReplacerFunctionCount++] = "doVCEVarFunction" SPC getField(%operator,0) SPC %output[%i - 2] SPC %output[%i - 1];
+				%brick.VCE_ReplacerFunction[%brick.VCE_ReplacerFunctionCount++] = "doVCEVarFunction" TAB getField(%operator,0) TAB %output[%i - 2] TAB %output[%i - 1];
 				%output[%i] = "VCE_ReplacerFunction" @ %brick.VCE_ReplacerFunctionCount;
 				//shift all values between %i - 1 and %last to starting at %i
 				for(%j = %i - 3; %j >= %last; %j--){
@@ -332,16 +341,16 @@ function fxDTSBrick::filterVCEString(%brick,%string,%client,%player,%vehicle,%bo
 		%product = %output[%outputcount - 1];
 	} else
 	//variable
-	if("<var:" $= %header && strPos(%things,":") > 0)
+	if("<var:" $= %header && strPos(%fthings,":") > 0)
 	{
 		%ogBrick = %brick;
-		%mode = getSubStr(%things,0,strPos(%things,":"));
-		%var = getSubStr(%things,strPos(%things,":") + 1, 4000);
+		%mode = getSubStr(%fthings,0,strPos(%fthings,":"));
+		%var = getSubStr(%fthings,strPos(%fthings,":") + 1, 4000);
 		%c = 0;
 		%vargroup = %brick.getGroup().varGroup;
 		if(striPos(%mode,"nb_") == 0)
 		{
-			%product = %vargroup SPC "getNamedBrickVariable" SPC  %var SPC getSubStr( %mode ,2, strLen( %mode) - 2 );
+			%product = %vargroup TAB "getNamedBrickVariable" TAB  %var TAB getSubStr( %mode ,2, strLen( %mode) - 2 );
 
 			%brick.VCE_ReplacerFunction[%brick.VCE_ReplacerFunctionCount++] =  %product;
 			%product = "VCE_ReplacerFunction" @ %brick.VCE_ReplacerFunctionCount;
@@ -350,7 +359,7 @@ function fxDTSBrick::filterVCEString(%brick,%string,%client,%player,%vehicle,%bo
 		{
 			if(isObject(%obj = VCE_getObjectFromVarType(%mode,%brick,%client,%player,%vehicle,%bot,%minigame)))
 			{
-				%product = %vargroup SPC "getVariable" SPC %var SPC %obj;
+				%product = %vargroup TAB "getVariable" TAB %var TAB %obj;
 
 				%brick.VCE_ReplacerFunction[%brick.VCE_ReplacerFunctionCount++] =  %product;
 				%product = "VCE_ReplacerFunction" @ %brick.VCE_ReplacerFunctionCount;
@@ -359,13 +368,13 @@ function fxDTSBrick::filterVCEString(%brick,%string,%client,%player,%vehicle,%bo
 		%brick = %ogBrick;
 	} else
 	//functions
-	if("<func:" $= %header && strPos(%things,":") > 0)
+	if("<func:" $= %header && strPos(%fthings,":") > 0)
 	{
-		%mode = getSubStr(%things,0,strPos(%things,":"));
-		%args = strReplace(getSubStr(%things,strPos(%things,":") + 1, 4000),",","\t");
+		%mode = getSubStr(%fthings,0,strPos(%fthings,":"));
+		%args = strReplace(getSubStr(%fthings,strPos(%fthings,":") + 1, 4000),",","\t");
 		if((%func = $VCE::Server::Function[%mode]) !$= "")
 		{
-			%product = "doVCEVarFunction" SPC %func SPC getField(%args,0) SPC getFields(%args,1, getFieldCount(%args) - 1);
+			%product = "doVCEVarFunction" TAB %func TAB getField(%args,0) TAB getFields(%args,1, getFieldCount(%args) - 1);
 
 			%brick.VCE_ReplacerFunction[%brick.VCE_ReplacerFunctionCount++] =  %product;
 			%product = "VCE_ReplacerFunction" @ %brick.VCE_ReplacerFunctionCount;
@@ -374,11 +383,11 @@ function fxDTSBrick::filterVCEString(%brick,%string,%client,%player,%vehicle,%bo
 	else
 	{
 
-		return trim(%prev @ %header @ %things @ ">" SPC %next);
+		return trim(%prev @ %header @ %fthings @ ">" TAB %next);
 	}
 	
 	
-	return trim(%prev SPC %product SPC %next);
+	return trim(%prev TAB %product TAB %next);
 
 
 }
