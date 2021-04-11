@@ -252,7 +252,17 @@ function fxDTSBrick::filterVCEString(%brick,%string,%client,%player,%vehicle,%bo
 	if((%thingsFieldjunk = %brick.getField(%things)) !$= "")
 		%things = %thingsFieldjunk;
 	if("<e:" $= %header)
-	{
+	{	
+		%count = getWordCount(%things);
+		//replace literals with correct stuff
+		for(%i = 0; %i < %count; %i++)
+		{
+			%word = getWord(%things, %i);
+			if(strPos(%word,"VCE_ReplacerLiteral") == 0)
+			{
+				%things = setWord(%things,%i,%brick.getField(%word));
+			}
+		}
 		//shunting yard algorithm
 		%count = getWordCount(%things);
 		%outputCount = 0;
@@ -260,6 +270,7 @@ function fxDTSBrick::filterVCEString(%brick,%string,%client,%player,%vehicle,%bo
 		for(%i = 0; %i < %count; %i++)
 		{
 			%word = getWord(%things, %i);
+
 			if(%word $= "")
 				continue;
 			if((%currentOperator = $VCE::Server::Operator[%word]) $= "")
@@ -309,7 +320,6 @@ function fxDTSBrick::filterVCEString(%brick,%string,%client,%player,%vehicle,%bo
 		for(%i = 2; %i < %outputCount; %i++){
 			//if it's an operator
 			if(getfieldCount(%operator = %output[%i]) > 1){
-
 				%brick.VCE_ReplacerFunction[%brick.VCE_ReplacerFunctionCount++] = "doVCEVarFunction" SPC getField(%operator,0) SPC %output[%i - 2] SPC %output[%i - 1];
 				%output[%i] = "VCE_ReplacerFunction" @ %brick.VCE_ReplacerFunctionCount;
 				//shift all values between %i - 1 and %last to starting at %i

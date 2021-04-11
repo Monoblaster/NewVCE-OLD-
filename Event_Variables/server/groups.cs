@@ -78,7 +78,6 @@ function VariableGroup::getVariable(%group,%varName,%obj)
 
 	if(isSpecialVar(%classname,%varName))
 		return eval("return" SPC strReplace($VCE::Server::SpecialVar[%className,%varName],"%this",%obj) @ ";");
-
 	return %group.value[%className,%obj,%varName];
 }
 function VariableGroup::setNamedBrickVariable(%group,%varName,%value,%brickName)
@@ -98,7 +97,6 @@ function VariableGroup::getNamedBrickVariable(%group,%varName,%brickName)
 
 	if(%val1 $= "")
 		%val = %val2;
-
 	return %val;
 }
 function isSpecialVar(%classname,%name)

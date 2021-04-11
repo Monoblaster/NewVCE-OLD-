@@ -15,21 +15,32 @@ $VCEisEventParameterType["string"] = 1;
 $VCEisEventParameterType["vector"] = 1;
 $VCEisEventParameterType["paintColor"] = 1;
 //MIM between proccessing and actual event calling
+function SimObject::VCEReferenceStringCleanup(%obj,%lineNumber)
+{
+	%p = 0;
+	while(%p++ < 5)
+		%obj.VCE_ReferenceString[%lineNumber,%p] = "";
+
+}
+
 function SimObject::VCECallEvent(%obj, %outputEvent, %brick, %client,%player,%vehicle,%bot,%minigame, %passClient,%eventLineNumber, %par1, %par2, %par3, %par4)
 {
 	%classname = %obj.getClassName();
 
+
 	%targetClass = inputEvent_GetTargetClass("fxDTSBrick", %brick.eventInputIdx[%eventLineNumber], %brick.eventTargetIdx[%eventLineNumber]);
+
 	//loop through replacing parameter string with the eval string equivilent
 	for(%i = 1; %i <= 4; %i++)
 	{
 		if((%referenceString = %brick.VCE_ReferenceString[%eventLineNumber,%i]) $= "")
 			continue;
-			
+
 		%par[%i] = %brick.doVCEReferenceString(%referenceString);
 	}
 
 	%parCount = outputEvent_GetNumParametersFromIdx(%targetClass, %brick.eventOutputIdx[%eventLineNumber]);
+
 	%vargroup = %brick.getGroup().vargroup;
 
 	//there's some special vce functions we want to call within this scope so they have access to needed references
@@ -64,7 +75,6 @@ function SimObject::VCECallEvent(%obj, %outputEvent, %brick, %client,%player,%ve
 		%newValue = doVCEVarFunction(%logic, %oldValue, %newValue);
 
 		%vargroup.setVariable(%varName,%newValue,%obj);
-
 		if(%toNamedBrick)
 			%varGroup.setNamedBrickVariable(%varName,%newValue,%obj.getName());
 
@@ -235,13 +245,20 @@ package VCE_Main
 		%parameterWordCount = getWordCount(%parameterWords);
 		%c = 1;
 		//go thorugh parameters and filter replacers for them to make eval strings for later computaion
+		if(%i == 0)
+		{
+			//spaghetti code because i don't feel like making an initlizing function
+			%brick.VCE_ReplacerFunctionCount = 0;
+			%brick.VCE_ReplacerLiteralCount = 0;
+		}
+
+		//remove previous reference strings
+		%brick.VCEReferenceStringCleanup(%i);
+		
 		for(%j = 0; %j < %parameterWordCount; %j++)
 		{
 			%word = getWord(%parameterWords, %j);
 			if(%word $= "string"){
-				//spaghetti code because i don't feel like making an initlizing function
-				%brick.VCE_ReplacerFunctionCount = 0;
-				%brick.VCE_ReplacerLiteralCount = 0;
 				//cleansing strings because you can crash by self referencing
 				%par[%c] = strReplace(%par[%c], "VCE_ReplacerFunction", "");
 				%par[%c] = strReplace(%par[%c], "VCE_ReplacerLiteral", "");
@@ -644,7 +661,7 @@ package VCE_FireRelayNumFix
 					continue;
 
 				// Call for event function
-					%event = %next.schedule(%eventDelay,"VCECallEvent",%eventOutput, %obj, %client,%client.player,%obj.vehicle,%obj.hbot,getMinigameFromObject(%obj), %obj.eventOutputAppendClient[%i],%type, %p1, %p2, %p3, %p4);
+					%event = %next.schedule(%eventDelay,"VCECallEvent",%eventOutput, %obj, %client,%client.player,%obj.vehicle,%obj.hbot,getMinigameFromObject(%obj), %obj.eventOutputAppendClient[%i],%i, %p1, %p2, %p3, %p4);
 				
 				// To be able to cancel an event
 				if (%delay > 0)
