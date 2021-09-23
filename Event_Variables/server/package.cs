@@ -16,15 +16,38 @@ $VCEisEventParameterType["vector"] = 1;
 $VCEisEventParameterType["paintColor"] = 1;
 package VCE_Main
 {
+	//packages for figuring out special variable examples
+	function GameConnection::autoAdminCheck(%client)
+	{
+		$VCE::Server::SpecialVariableObject[%client,CLIENT] = %client;
+		Parent::autoAdminCheck(%client);
+	}
+	function Armor::onAdd(%this, %obj)
+	{
+		if(%obj.client.getClassName() $= "GameConnection")
+			$VCE::Server::SpecialVariableObject[%obj.client,PLAYER] = %obj;
+		else
+			$VCE::Server::SpecialVariableObject[%obj.client,BOT] = %obj;
+
+		Parent::onAdd(%this, %obj);
+	}
+	function fxDtsBrick::spawnVehicle(%brick)
+	{
+		Parent::spawnVehicle(%brick);
+
+		$VCE::Server::SpecialVariableObject[%brick.getGroup().client,VEHICLE] = %brick.vehicle;
+	}
 	function fxDtsBrick::onPlant(%brick)
 	{
 		VCE_createVariableGroup(%brick);
-		
+		$VCE::Server::SpecialVariableObject[%brick.getGroup().client,BRICK] = %brick;
+
 		return Parent::onPlant(%brick);
 	}
 	function fxDtsBrick::onLoadPlant(%brick)
 	{
 		VCE_createVariableGroup(%brick);
+		$VCE::Server::SpecialVariableObject[%brick.getGroup().client,BRICK] = %brick;
 		
 		return Parent::onLoadPlant(%brick);
 	}

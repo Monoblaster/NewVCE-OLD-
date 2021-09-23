@@ -484,7 +484,7 @@ function callVCEEventFunction (%eventFunctionName, %arg, %client)
 		}
 	}
 }
-function serverCmdMFD(%client,%page)
+function serverCmdFD(%client,%page)
 {
 	%pageLength = 6;
 	if(%page $= "")
@@ -503,6 +503,10 @@ function serverCmdMFD(%client,%page)
 }
 function serverCmdSVD(%client,%catagory,%page)
 {
+	//we only want special variable dictionarys visible if you need it
+	if(!($Pref::VCE::canEditSpecialVars && %client.isAdmin && %client.brickgroup.vargroup))
+		return;
+
 	%pageLength = 6;
 	if(%page $= "")
 		%page = 1;
@@ -511,10 +515,10 @@ function serverCmdSVD(%client,%catagory,%page)
 		
 		%client.chatMessage("<font:palatino linotype:20>\c2" @ $VCE::Server::ObjectToReplacer[%catagoryName] SPC "Variable Replacers:");
 		//display replacers
-		
 		%c = (%page - 1) * %pageLength;
+		talk($VCE::Server::SpecialVariableObject[%client,$VCE::Server::ObjectToReplacer[%catagoryName]]);
 		while((%name = $VCE::Server::ReplacerDictionaryCatagoryEntry[%catagoryName,%c]) !$= "" && %c < (%pageLength * (%page))){
-			%client.chatMessage("<font:palatino linotype:20>\c3" @ %c SPC "\c6|\c4" SPC %name);
+			%client.chatMessage("<font:palatino linotype:20>\c3" @ %c SPC "\c6|\c4" SPC %name SPC "(ex:" SPC trim(%client.brickgroup.vargroup.getVariable(%name,$VCE::Server::SpecialVariableObject[%client,$VCE::Server::ObjectToReplacer[%catagoryName]])) @ ")");
 			%c++;
 		}
 		%client.chatMessage("<font:palatino linotype:20>\c2Page" SPC %page SPC "out of" SPC mCeil($VCE::Server::ReplacerDictionaryCatagoryEntryCount[%catagoryName] / %pageLength) SPC ", Input the page you want to go to.");
